@@ -39,7 +39,7 @@ export function DashboardHeader({ user }: DashboardHeaderProps) {
       <div className="flex h-16 items-center px-6 gap-4">
         <div className="flex items-center gap-2">
           <Briefcase className="h-6 w-6 text-primary" />
-          <span className="font-semibold text-xl">HireHub</span>
+          <span className="font-semibold text-xl">Kaamwork</span>
         </div>
 
         <div className="ml-auto flex items-center gap-4">

@@ -11,7 +11,7 @@ export default function HomePage() {
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Briefcase className="h-6 w-6 text-primary" />
-            <span className="font-semibold text-xl">HireHub</span>
+            <span className="font-semibold text-xl">Kaamwork</span>
           </div>
           <div className="flex items-center gap-3">
             <Button variant="ghost" asChild>
@@ -87,7 +87,7 @@ export default function HomePage() {
       {/* Footer */}
       <footer className="border-t py-8 px-4">
         <div className="container mx-auto text-center text-sm text-muted-foreground">
-          <p>&copy; 2025 HireHub. All rights reserved.</p>
+          <p>&copy; 2025 Kaamwork. All rights reserved.</p>
         </div>
       </footer>
     </div>

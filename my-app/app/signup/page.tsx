@@ -28,7 +28,9 @@ export default function SignupPage() {
     setLoading(true)
 
     try {
-      const response = await fetch("/api/signup", {
+
+      console.log('form',  formData); 
+      const response = await fetch("/api/auth/signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
@@ -54,7 +56,7 @@ export default function SignupPage() {
         <CardHeader className="space-y-1">
           <div className="flex items-center gap-2 mb-2">
             <Briefcase className="h-6 w-6 text-primary" />
-            <span className="font-semibold text-xl">HireHub</span>
+            <span className="font-semibold text-xl">Kaamwork</span>
           </div>
           <CardTitle className="text-2xl">Create an account</CardTitle>
           <CardDescription>Enter your information to get started</CardDescription>

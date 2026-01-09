@@ -1,47 +1,39 @@
-import { cookies } from "next/headers"
-import { users, profiles } from "@/lib/db"
+import { SignJWT, jwtVerify } from 'jose';
+import bcrypt from 'bcryptjs';
 
-export async function getSession() {
-  const cookieStore = await cookies()
-  const session = cookieStore.get("session")
-  const userId = cookieStore.get("userId")
+const SECRET = new TextEncoder().encode(
+  process.env.JWT_SECRET || 'your-secret-key-change-in-production'
+);
 
-  if (!session || !userId) {
-    return null
+export const hashPassword = async (password: string): Promise<string> => {
+  return await bcrypt.hash(password, 10);
+};
+
+export const comparePassword = async (
+  password: string,
+  hashedPassword: string
+): Promise<boolean> => {
+  return await bcrypt.compare(password, hashedPassword);
+};
+
+export const generateToken = async (payload: { userId: string; email: string }) => {
+  return await new SignJWT(payload)
+    .setProtectedHeader({ alg: 'HS256' })
+    .setExpirationTime('7d')
+    .setIssuedAt()
+    .sign(SECRET);
+};
+
+export const verifyToken = async (token: string) => {
+  try {
+    const { payload } = await jwtVerify(token, SECRET);
+    return payload;
+  } catch (error) {
+    return null;
   }
+};
 
-  return {
-    sessionToken: session.value,
-    userId: userId.value,
-  }
-}
-
-export async function requireAuth() {
-  const session = await getSession()
-
-  if (!session) {
-    throw new Error("Unauthorized")
-  }
-
-  return session
-}
-
-export async function getUserData(userId: string) {
-  const user = users.find((u) => u.id === userId)
-
-  if (!user) {
-    return null
-  }
-
-  return {
-    id: user.id,
-    name: user.name,
-    email: user.email,
-    mobile: user.mobile,
-  }
-}
-
-export async function getUserProfile(userId: string) {
-  const profile = profiles.find((p) => p.userId === userId)
-  return profile || null
-}
+export const generateResetToken = (): string => {
+  return Math.random().toString(36).substring(2, 15) + 
+         Math.random().toString(36).substring(2, 15);
+};

@@ -38,3 +38,39 @@ export async function getAvailableJobsByCategory(category: string, userId: strin
   // Return jobs that match category, are open, and not created by current user
   return jobPosts.filter((job) => job.category === category && job.status === "open" && job.createdBy !== userId)
 }
+
+
+interface User {
+  id: string;
+  name: string;
+  email: string;
+  mobile: string;
+  password: string;
+  resetToken?: string;
+  resetTokenExpiry?: number;
+  createdAt: string;
+}
+
+let users: User[] = [];
+
+export const db = {
+  findUserByEmail: (email: string) => users.find(u => u.email === email),
+  findUserByMobile: (mobile: string) => users.find(u => u.mobile === mobile),
+  findUserByEmailOrMobile: (identifier: string) => 
+    users.find(u => u.email === identifier || u.mobile === identifier),
+  findUserByResetToken: (token: string) => 
+    users.find(u => u.resetToken === token && u.resetTokenExpiry! > Date.now()),
+  createUser: (user: User) => {
+    users.push(user);
+    return user;
+  },
+  updateUser: (id: string, updates: Partial<User>) => {
+    const index = users.findIndex(u => u.id === id);
+    if (index !== -1) {
+      users[index] = { ...users[index], ...updates };
+      return users[index];
+    }
+    return null;
+  },
+  getAllUsers: () => users
+};
