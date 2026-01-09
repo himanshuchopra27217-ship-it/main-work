@@ -1,7 +1,8 @@
 // Mock database storage
-export const users: any[] = []
+
 export const profiles: any[] = []
 export const jobPosts: any[] = []
+
 
 export async function getUserProfile(userId: string) {
   return profiles.find((p) => p.userId === userId) || null
