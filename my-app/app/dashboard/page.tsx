@@ -1,0 +1,205 @@
+import { redirect } from "next/navigation"
+import { getSession } from "@/lib/auth"
+import { getJobsByUser, getAssignedJobsByUser, getAvailableJobsByCategory, getUserProfile } from "@/lib/db"
+import { db } from "@/lib/db"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { Briefcase, Users, Plus, Search, User } from "lucide-react"
+import Link from "next/link"
+import { DashboardNav } from "@/components/dashboard-nav"
+
+export default async function DashboardPage() {
+  const session = await getSession()
+
+  if (!session) {
+    redirect("/login")
+  }
+
+  const profile = await getUserProfile(session.userId)
+
+  if (!profile) {
+    redirect("/dashboard/my-jobs/setup")
+  }
+
+  const user = await db.findUserById(session.userId)
+
+  if (!user) {
+    redirect("/login")
+  }
+
+  // Get some stats for the dashboard
+  const createdJobs = await getJobsByUser(session.userId)
+  const assignedJobs = await getAssignedJobsByUser(session.userId)
+  const availableJobs = await getAvailableJobsByCategory(profile.category, session.userId)
+
+  const stats = {
+    postedJobs: createdJobs.length,
+    acceptedJobs: assignedJobs.length,
+    availableJobs: availableJobs.length,
+  }
+
+  return (
+    <div className="min-h-screen bg-muted/30">
+      <header className="border-b bg-card">
+        <div className="flex h-16 items-center px-6 gap-4">
+          <div className="flex items-center gap-2">
+            <Briefcase className="h-6 w-6 text-primary" />
+            <span className="font-semibold text-xl">Kaamwork</span>
+          </div>
+          <div className="ml-auto">
+            <Button variant="outline" asChild>
+              <Link href="/login">Logout</Link>
+            </Button>
+          </div>
+        </div>
+      </header>
+      <DashboardNav userRole={profile.role} />
+
+      <main className="container mx-auto px-4 py-8">
+        <div className="space-y-8 max-w-6xl">
+          {/* Welcome Section */}
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">
+              Welcome back, {user.name}!
+            </h1>
+            <p className="text-muted-foreground mt-2">
+              {profile.role === 'worker' 
+                ? `Find work opportunities in the ${profile.category} category.`
+                : `Here's an overview of your job activity in the ${profile.category} category.`
+              }
+            </p>
+          </div>
+
+          {/* Stats Cards */}
+          <div className={`grid gap-6 ${profile.role === 'worker' ? 'md:grid-cols-2' : 'md:grid-cols-3'}`}>
+            {profile.role !== 'worker' && (
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Jobs Posted</CardTitle>
+                  <Briefcase className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">{stats.postedJobs}</div>
+                  <p className="text-xs text-muted-foreground">
+                    Jobs you've created
+                  </p>
+                </CardContent>
+              </Card>
+            )}
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Jobs Accepted</CardTitle>
+                <Users className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{stats.acceptedJobs}</div>
+                <p className="text-xs text-muted-foreground">
+                  Jobs you're working on
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Available Jobs</CardTitle>
+                <Search className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{stats.availableJobs}</div>
+                <p className="text-xs text-muted-foreground">
+                  Jobs you can apply for
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Quick Actions */}
+          <div className={`grid gap-6 ${profile.role === 'worker' ? 'md:grid-cols-1 max-w-md' : 'md:grid-cols-2'}`}>
+            {profile.role !== 'worker' && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Briefcase className="h-5 w-5" />
+                    Job Management
+                  </CardTitle>
+                  <CardDescription>
+                    Create and manage your job postings
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <Button asChild className="w-full">
+                    <Link href="/dashboard/jobs/create">
+                      <Plus className="h-4 w-4 mr-2" />
+                      Post a New Job
+                    </Link>
+                  </Button>
+                  <Button asChild variant="outline" className="w-full">
+                    <Link href="/dashboard/my-jobs">
+                      View My Jobs
+                    </Link>
+                  </Button>
+                </CardContent>
+              </Card>
+            )}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Search className="h-5 w-5" />
+                  Find Work
+                </CardTitle>
+                <CardDescription>
+                  Browse and apply for available jobs
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <Button asChild className="w-full">
+                  <Link href="/dashboard/jobs">
+                    Browse Available Jobs
+                  </Link>
+                </Button>
+                <div className="text-sm text-muted-foreground">
+                  {stats.availableJobs > 0 ? (
+                    <span className="text-primary font-medium">
+                      {stats.availableJobs} jobs available in your category
+                    </span>
+                  ) : (
+                    "No jobs currently available in your category"
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Profile Status */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <User className="h-5 w-5" />
+                Profile Status
+              </CardTitle>
+              <CardDescription>
+                Your profile information and category
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center justify-between">
+                <div className="space-y-1">
+                  <p className="text-sm font-medium">Category</p>
+                  <span className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold bg-secondary text-secondary-foreground">
+                    {profile.category}
+                  </span>
+                </div>
+                <Button asChild variant="outline">
+                  <Link href="/dashboard/my-jobs/profile/edit">
+                    Edit Profile
+                  </Link>
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </main>
+    </div>
+  )
+}

@@ -18,6 +18,7 @@ export interface User {
 export interface UserProfile {
   _id?: any; // MongoDB ObjectId
   userId: string; // Reference to User._id
+  role: 'admin' | 'worker' | 'hiring'; // User role
   category: string; // Job category (Plumber, Electrician, Developer, etc.)
   age?: number;
   mobile?: string;

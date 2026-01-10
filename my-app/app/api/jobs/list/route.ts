@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server"
-import { jobPosts, profiles } from "@/lib/db"
+import { getAvailableJobsByCategory, getUserProfile } from "@/lib/db"
 import { cookies } from "next/headers"
 
 export async function GET() {
@@ -12,16 +12,14 @@ export async function GET() {
     }
 
     // Get user's profile to know their category
-    const userProfile = profiles.find((p) => p.userId === userId)
+    const userProfile = await getUserProfile(userId)
 
     if (!userProfile) {
       return NextResponse.json({ error: "Profile not found" }, { status: 404 })
     }
 
-    // Filter jobs by category and status
-    const availableJobs = jobPosts.filter(
-      (job) => job.category === userProfile.category && job.status === "open" && job.createdBy !== userId,
-    )
+    // Get available jobs by category
+    const availableJobs = await getAvailableJobsByCategory(userProfile.category, userId)
 
     return NextResponse.json({ jobs: availableJobs })
   } catch (error) {

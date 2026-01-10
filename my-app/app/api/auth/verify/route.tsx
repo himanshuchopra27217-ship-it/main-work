@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Get user details
-    const user = db.findUserByEmail(payload.email as string);
+    const user = await db.findUserByEmail(payload.email as string);
 
     if (!user) {
       return NextResponse.json(

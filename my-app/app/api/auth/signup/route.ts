@@ -42,7 +42,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if user already exists
-    const existingUserByEmail = db.findUserByEmail(email);
+    const existingUserByEmail = await db.findUserByEmail(email);
     if (existingUserByEmail) {
       return NextResponse.json(
         { error: 'Email already registered' },
@@ -50,7 +50,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const existingUserByMobile = db.findUserByMobile(mobile);
+    const existingUserByMobile = await db.findUserByMobile(mobile);
     if (existingUserByMobile) {
       return NextResponse.json(
         { error: 'Mobile number already registered' },
@@ -62,7 +62,7 @@ export async function POST(request: NextRequest) {
     const hashedPassword = await hashPassword(password);
 
     // Create user
-    const newUser = db.createUser({
+    const newUser = await db.createUser({
       id: Date.now().toString(),
       name,
       email,
@@ -73,7 +73,7 @@ export async function POST(request: NextRequest) {
 
     // Generate JWT token
     const token = await generateToken({
-      userId: newUser.id,
+      userId: newUser._id.toString(),
       email: newUser.email
     });
 

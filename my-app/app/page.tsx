@@ -17,6 +17,9 @@ export default function HomePage() {
             <Button variant="ghost" asChild>
               <Link href="/login">Login</Link>
             </Button>
+            <Button variant="outline" asChild>
+              <Link href="/dashboard/jobs/create">Publish your work</Link>
+            </Button>
             <Button asChild>
               <Link href="/signup">Get Started</Link>
             </Button>

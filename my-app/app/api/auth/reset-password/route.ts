@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Find user by reset token
-    const user = db.findUserByResetToken(token);
+    const user = await db.findUserByResetToken(token);
 
     if (!user) {
       return NextResponse.json(
@@ -40,7 +40,7 @@ export async function POST(request: NextRequest) {
     const hashedPassword = await hashPassword(newPassword);
 
     // Update user password and clear reset token
-    db.updateUser(user.id, {
+    await db.updateUser(user._id.toString(), {
       password: hashedPassword,
       resetToken: undefined,
       resetTokenExpiry: undefined

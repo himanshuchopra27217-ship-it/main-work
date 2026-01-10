@@ -34,6 +34,36 @@ export const verifyToken = async (token: string) => {
 };
 
 export const generateResetToken = (): string => {
-  return Math.random().toString(36).substring(2, 15) + 
+  return Math.random().toString(36).substring(2, 15) +
          Math.random().toString(36).substring(2, 15);
+};
+
+// Server-side session management using cookies
+export const getSession = async () => {
+  try {
+    const { cookies } = await import('next/headers');
+    const cookieStore = await cookies();
+    const token = cookieStore.get('token')?.value;
+
+    if (!token) {
+      return null;
+    }
+
+    const payload = await verifyToken(token);
+    if (!payload || !payload.userId) {
+      return null;
+    }
+
+    return {
+      userId: payload.userId as string,
+      email: payload.email as string,
+    };
+  } catch (error) {
+    return null;
+  }
+};
+
+export const getUserProfile = async (userId: string) => {
+  const { getUserProfile: getProfile } = await import('./db');
+  return await getProfile(userId);
 };

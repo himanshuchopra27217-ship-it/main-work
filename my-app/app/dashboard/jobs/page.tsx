@@ -19,6 +19,11 @@ export default async function BrowseJobsPage() {
     redirect("/dashboard/profile/setup")
   }
 
+  // Only workers can browse jobs
+  if (profile.role !== "worker" && profile.role !== "admin") {
+    redirect("/dashboard")
+  }
+
   const availableJobs = await getAvailableJobsByCategory(profile.category, session.userId)
 
   return (

@@ -31,13 +31,45 @@ interface ProfileSetupFormProps {
 export function ProfileSetupForm({ userId }: ProfileSetupFormProps) {
   const router = useRouter()
   const [formData, setFormData] = useState({
+    role: "worker" as "admin" | "worker" | "hiring",
     category: "",
     age: "",
     mobile: "",
     profilePhoto: "",
   })
+  const [selectedFile, setSelectedFile] = useState<File | null>(null)
+  const [previewUrl, setPreviewUrl] = useState<string>("")
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        setError("Please select a valid image file")
+        return
+      }
+
+      // Validate file size (5MB limit)
+      if (file.size > 5 * 1024 * 1024) {
+        setError("File size must be less than 5MB")
+        return
+      }
+
+      setSelectedFile(file)
+      setError("")
+
+      // Create preview URL
+      const reader = new FileReader()
+      reader.onload = (e) => {
+        const result = e.target?.result as string
+        setPreviewUrl(result)
+        setFormData({ ...formData, profilePhoto: result })
+      }
+      reader.readAsDataURL(file)
+    }
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -71,15 +103,57 @@ export function ProfileSetupForm({ userId }: ProfileSetupFormProps) {
       <CardContent className="pt-6">
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-2">
-            <Label htmlFor="profilePhoto">Profile Photo URL (Optional)</Label>
-            <Input
-              id="profilePhoto"
-              type="url"
-              placeholder="https://example.com/photo.jpg"
-              value={formData.profilePhoto}
-              onChange={(e) => setFormData({ ...formData, profilePhoto: e.target.value })}
-            />
-            <p className="text-xs text-muted-foreground">Enter a URL to your profile photo</p>
+            <Label htmlFor="profilePhoto">Profile Photo (Optional)</Label>
+            <div className="space-y-4">
+              <Input
+                id="profilePhoto"
+                type="file"
+                accept="image/*"
+                onChange={handleFileChange}
+                className="file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-primary-foreground hover:file:bg-primary/90"
+              />
+              {previewUrl && (
+                <div className="flex items-center space-x-4">
+                  <img
+                    src={previewUrl}
+                    alt="Profile preview"
+                    className="w-16 h-16 rounded-full object-cover border"
+                  />
+                  <div className="text-sm text-muted-foreground">
+                    <p>Preview of your profile photo</p>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSelectedFile(null)
+                        setPreviewUrl("")
+                        setFormData({ ...formData, profilePhoto: "" })
+                      }}
+                      className="text-destructive hover:underline"
+                    >
+                      Remove photo
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+            <p className="text-xs text-muted-foreground">Upload a profile photo (max 5MB, JPG/PNG)</p>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="role">
+              Role <span className="text-destructive">*</span>
+            </Label>
+            <Select value={formData.role} onValueChange={(value: "admin" | "worker" | "hiring") => setFormData({ ...formData, role: value })}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select your role" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="worker">Worker - Browse and accept jobs</SelectItem>
+                <SelectItem value="hiring">Hiring - Post and manage jobs</SelectItem>
+                <SelectItem value="admin">Admin - Full access</SelectItem>
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-muted-foreground">Choose your primary role on the platform</p>
           </div>
 
           <div className="space-y-2">

@@ -3,33 +3,83 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
-import { LayoutDashboard, User, Briefcase, FileText } from "lucide-react"
+import { LayoutDashboard, User, Briefcase, FileText, Plus, Settings } from "lucide-react"
 
-const navItems = [
-  {
-    title: "Dashboard",
-    href: "/dashboard",
-    icon: LayoutDashboard,
-  },
-  {
-    title: "Profile",
-    href: "/dashboard/profile",
-    icon: User,
-  },
-  {
-    title: "My Jobs",
-    href: "/dashboard/my-jobs",
-    icon: FileText,
-  },
-  {
-    title: "Browse Jobs",
-    href: "/dashboard/jobs",
-    icon: Briefcase,
-  },
-]
+interface DashboardNavProps {
+  userRole?: string
+}
 
-export function DashboardNav() {
+export function DashboardNav({ userRole }: DashboardNavProps) {
   const pathname = usePathname()
+
+  const getNavItems = () => {
+    const baseItems = [
+      {
+        title: "Dashboard",
+        href: "/dashboard",
+        icon: LayoutDashboard,
+      },
+      {
+        title: "Profile",
+        href: "/dashboard/profile",
+        icon: User,
+      },
+    ]
+
+    switch (userRole) {
+      case "worker":
+        return [
+          ...baseItems,
+          {
+            title: "Browse Jobs",
+            href: "/dashboard/jobs",
+            icon: Briefcase,
+          },
+        ]
+      case "hiring":
+        return [
+          ...baseItems,
+          {
+            title: "My Jobs",
+            href: "/dashboard/my-jobs",
+            icon: FileText,
+          },
+          {
+            title: "Create Job",
+            href: "/dashboard/jobs/create",
+            icon: Plus,
+          },
+        ]
+      case "admin":
+        return [
+          ...baseItems,
+          {
+            title: "My Jobs",
+            href: "/dashboard/my-jobs",
+            icon: FileText,
+          },
+          {
+            title: "Browse Jobs",
+            href: "/dashboard/jobs",
+            icon: Briefcase,
+          },
+          {
+            title: "Create Job",
+            href: "/dashboard/jobs/create",
+            icon: Plus,
+          },
+          {
+            title: "Admin",
+            href: "/dashboard/admin",
+            icon: Settings,
+          },
+        ]
+      default:
+        return baseItems
+    }
+  }
+
+  const navItems = getNavItems()
 
   return (
     <aside className="w-64 border-r bg-card hidden lg:block">

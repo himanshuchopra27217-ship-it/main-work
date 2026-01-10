@@ -16,6 +16,11 @@ export default async function CreateJobPage() {
     redirect("/dashboard/profile/setup")
   }
 
+  // Only hiring users and admins can create jobs
+  if (profile.role !== "hiring" && profile.role !== "admin") {
+    redirect("/dashboard")
+  }
+
   return (
     <div className="max-w-3xl">
       <div className="mb-8">

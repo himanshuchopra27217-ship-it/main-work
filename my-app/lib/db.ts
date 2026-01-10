@@ -49,7 +49,18 @@ export async function updateProfile(userId: string, data: any): Promise<UserProf
   }
 }
 
-// ============= JOB FUNCTIONS =============
+export async function getJobById(jobId: string): Promise<JobPost | null> {
+  try {
+    const client = await clientPromise;
+    const db = client.db('jobapp');
+    const { ObjectId } = require('mongodb');
+    const job = await db.collection('jobPosts').findOne({ _id: new ObjectId(jobId) });
+    return job as JobPost | null;
+  } catch (error) {
+    console.error('Error fetching job by ID:', error);
+    return null;
+  }
+}
 
 export async function getJobsByUser(userId: string): Promise<JobPost[]> {
   try {
@@ -166,6 +177,20 @@ export const db = {
       return user as User | null;
     } catch (error) {
       console.error('Error finding user by mobile:', error);
+      return null;
+    }
+  },
+
+  // Find user by ID
+  findUserById: async (id: string): Promise<User | null> => {
+    try {
+      const client = await clientPromise;
+      const dbConnection = client.db('jobapp');
+      const { ObjectId } = require('mongodb');
+      const user = await dbConnection.collection('users').findOne({ _id: new ObjectId(id) });
+      return user as User | null;
+    } catch (error) {
+      console.error('Error finding user by ID:', error);
       return null;
     }
   },

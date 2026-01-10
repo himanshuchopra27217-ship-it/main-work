@@ -22,7 +22,7 @@ export default async function ProfileEditPage() {
         <p className="text-muted-foreground mt-2">Update your professional information</p>
       </div>
 
-      <ProfileEditForm userId={session.userId} profile={profile} />
+      <ProfileEditForm profile={profile} />
     </div>
   )
 }

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server"
-import { jobPosts } from "@/lib/db"
+import { getJobById, deleteJob } from "@/lib/db"
 import { cookies } from "next/headers"
 
 export async function DELETE(request: Request) {
@@ -18,13 +18,11 @@ export async function DELETE(request: Request) {
       return NextResponse.json({ error: "Job ID is required" }, { status: 400 })
     }
 
-    const jobIndex = jobPosts.findIndex((job) => job.id === jobId)
+    const job = await getJobById(jobId)
 
-    if (jobIndex === -1) {
+    if (!job) {
       return NextResponse.json({ error: "Job not found" }, { status: 404 })
     }
-
-    const job = jobPosts[jobIndex]
 
     // Check if user is the creator or assigned worker
     if (job.createdBy !== userId && job.assignedTo !== userId) {
@@ -32,7 +30,11 @@ export async function DELETE(request: Request) {
     }
 
     // Delete the job
-    jobPosts.splice(jobIndex, 1)
+    const deleted = await deleteJob(jobId)
+
+    if (!deleted) {
+      return NextResponse.json({ error: "Failed to delete job" }, { status: 500 })
+    }
 
     return NextResponse.json({ message: "Job deleted successfully" })
   } catch (error) {

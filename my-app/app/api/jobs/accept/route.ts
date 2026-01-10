@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server"
-import { jobPosts } from "@/lib/db"
+import { getJobById, updateJob } from "@/lib/db"
 import { cookies } from "next/headers"
 
 export async function POST(request: Request) {
@@ -18,13 +18,11 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Job ID is required" }, { status: 400 })
     }
 
-    const jobIndex = jobPosts.findIndex((job) => job.id === jobId)
+    const job = await getJobById(jobId)
 
-    if (jobIndex === -1) {
+    if (!job) {
       return NextResponse.json({ error: "Job not found" }, { status: 404 })
     }
-
-    const job = jobPosts[jobIndex]
 
     // Check if job is still open
     if (job.status !== "open") {
@@ -37,14 +35,17 @@ export async function POST(request: Request) {
     }
 
     // Assign job to user
-    jobPosts[jobIndex] = {
-      ...job,
+    const updatedJob = await updateJob(jobId, {
       assignedTo: userId,
       status: "assigned",
       assignedAt: new Date().toISOString(),
+    })
+
+    if (!updatedJob) {
+      return NextResponse.json({ error: "Failed to accept job" }, { status: 500 })
     }
 
-    return NextResponse.json({ message: "Job accepted successfully", job: jobPosts[jobIndex] })
+    return NextResponse.json({ message: "Job accepted successfully", job: updatedJob })
   } catch (error) {
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }

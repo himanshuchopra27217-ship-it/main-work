@@ -29,7 +29,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Find user by email or mobile
-    const user = db.findUserByEmailOrMobile(identifier);
+    const user = await db.findUserByEmailOrMobile(identifier);
 
     if (!user) {
       return NextResponse.json(
@@ -50,14 +50,14 @@ export async function POST(request: NextRequest) {
 
     // Generate JWT token
     const token = await generateToken({
-      userId: user.id,
+      userId: user._id.toString(),
       email: user.email
     });
 
     // Return success response (exclude password)
     const { password: _, resetToken, resetTokenExpiry, ...userWithoutSensitiveData } = user;
 
-    return NextResponse.json(
+    const response = NextResponse.json(
       {
         message: 'Login successful',
         user: userWithoutSensitiveData,
@@ -65,6 +65,16 @@ export async function POST(request: NextRequest) {
       },
       { status: 200 }
     );
+
+    // Set HTTP-only cookie with the token
+    response.cookies.set('token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 60 * 60 * 24 * 7 // 7 days
+    });
+
+    return response;
 
   } catch (error) {
     console.error('Login error:', error);

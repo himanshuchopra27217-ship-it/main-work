@@ -26,7 +26,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Find user
-    const user = db.findUserByEmail(email);
+    const user = await db.findUserByEmail(email);
 
     // Don't reveal if user exists or not for security
     if (!user) {
@@ -41,7 +41,7 @@ export async function POST(request: NextRequest) {
     const resetTokenExpiry = Date.now() + 3600000; // 1 hour
 
     // Update user with reset token
-    db.updateUser(user.id, {
+    await db.updateUser(user._id.toString(), {
       resetToken,
       resetTokenExpiry
     });

@@ -15,7 +15,7 @@ export default function LoginPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [formData, setFormData] = useState({
-    email: "",
+    identifier: "",
     password: "",
   })
   const [error, setError] = useState("")
@@ -81,13 +81,13 @@ const handleSubmit = async (e: React.FormEvent) => {
             )}
 
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="identifier">Email or Mobile</Label>
               <Input
-                id="email"
-                type="email"
-                placeholder="you@example.com"
-                value={formData.email}
-                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                id="identifier"
+                type="text"
+                placeholder="you@example.com or 1234567890"
+                value={formData.identifier}
+                onChange={(e) => setFormData({ ...formData, identifier: e.target.value })}
                 required
               />
             </div>
