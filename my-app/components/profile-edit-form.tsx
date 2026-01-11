@@ -32,7 +32,7 @@ export function ProfileEditForm({ profile }: ProfileEditFormProps) {
   const router = useRouter()
   const [formData, setFormData] = useState({
     role: profile.role || "worker",
-    category: profile.category || "",
+    categories: profile.categories || (profile.category ? [profile.category] : []),
     age: profile.age?.toString() || "",
     mobile: profile.mobile || "",
     profilePhoto: profile.profilePhoto || "",
@@ -75,6 +75,12 @@ export function ProfileEditForm({ profile }: ProfileEditFormProps) {
     e.preventDefault()
     setError("")
     setLoading(true)
+
+    if (formData.categories.length === 0) {
+      setError("Please select at least one category")
+      setLoading(false)
+      return
+    }
 
     try {
       const response = await fetch("/api/profile", {
@@ -157,21 +163,35 @@ export function ProfileEditForm({ profile }: ProfileEditFormProps) {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="category">
-              Category <span className="text-destructive">*</span>
+            <Label>
+              Categories <span className="text-destructive">*</span>
             </Label>
-            <Select value={formData.category} onValueChange={(value) => setFormData({ ...formData, category: value })}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select your profession" />
-              </SelectTrigger>
-              <SelectContent>
-                {categories.map((cat) => (
-                  <SelectItem key={cat} value={cat}>
-                    {cat}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <div className="grid grid-cols-2 gap-3">
+              {categories.map((cat) => (
+                <label key={cat} className="flex items-center space-x-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={formData.categories.includes(cat)}
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        setFormData({
+                          ...formData,
+                          categories: [...formData.categories, cat]
+                        })
+                      } else {
+                        setFormData({
+                          ...formData,
+                          categories: formData.categories.filter(c => c !== cat)
+                        })
+                      }
+                    }}
+                    className="rounded border-gray-300 text-primary focus:ring-primary"
+                  />
+                  <span className="text-sm">{cat}</span>
+                </label>
+              ))}
+            </div>
+            <p className="text-xs text-muted-foreground">Select one or more categories that match your skills</p>
           </div>
 
           <div className="space-y-2">

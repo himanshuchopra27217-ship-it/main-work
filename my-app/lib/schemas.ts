@@ -19,7 +19,8 @@ export interface UserProfile {
   _id?: any; // MongoDB ObjectId
   userId: string; // Reference to User._id
   role: 'admin' | 'worker' | 'hiring'; // User role
-  category: string; // Job category (Plumber, Electrician, Developer, etc.)
+  category?: string; // Primary job category (for backward compatibility)
+  categories?: string[]; // Multiple job categories
   age?: number;
   mobile?: string;
   profilePhoto?: string; // URL or file path
@@ -40,10 +41,15 @@ export interface JobPost {
   title: string;
   description: string;
   category: string; // Job category
+  subCategory?: string; // Job sub-category
   createdBy: string; // Reference to User._id (Job creator)
   assignedTo?: string; // Reference to User._id (Assigned worker)
-  status: 'open' | 'assigned' | 'completed' | 'cancelled';
+  status: 'open' | 'closed' | 'assigned' | 'completed' | 'cancelled';
   budget?: number;
+  mobile?: string;
+  city?: string;
+  workPhoto?: string; // URL or file path
+  workDate?: string; // Date string
   location?: string;
   priority?: 'low' | 'medium' | 'high';
   acceptedCount?: number; // Number of workers who accepted the job

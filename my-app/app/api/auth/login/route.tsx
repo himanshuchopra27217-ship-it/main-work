@@ -6,7 +6,19 @@ import { validateEmail, validateMobile } from '@/lib/validation';
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
+    const bodyText = await request.text();
+    console.log('Raw request body:', bodyText); // Debug log
+
+    if (!bodyText) {
+      return NextResponse.json(
+        { error: 'Request body is empty' },
+        { status: 400 }
+      );
+    }
+
+    const body = JSON.parse(bodyText);
+    console.log('Parsed request body:', body); // Debug log
+
     const { identifier, password } = body; // identifier can be email or mobile
 
     // Validate required fields
@@ -54,6 +66,8 @@ export async function POST(request: NextRequest) {
       email: user.email
     });
 
+    console.log('Generated token for user:', user.email); // Debug log
+
     // Return success response (exclude password)
     const { password: _, resetToken, resetTokenExpiry, ...userWithoutSensitiveData } = user;
 
@@ -73,6 +87,8 @@ export async function POST(request: NextRequest) {
       sameSite: 'lax',
       maxAge: 60 * 60 * 24 * 7 // 7 days
     });
+
+    console.log('Cookie set, returning response'); // Debug log
 
     return response;
 

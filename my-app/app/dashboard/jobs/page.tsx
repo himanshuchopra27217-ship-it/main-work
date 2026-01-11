@@ -1,9 +1,9 @@
 import { redirect } from "next/navigation"
 import { getSession, getUserProfile } from "@/lib/auth"
-import { getAvailableJobsByCategory } from "@/lib/db"
+import { getAllAvailableJobs } from "@/lib/db"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Briefcase, Calendar, User } from "lucide-react"
+import { Briefcase, Calendar, User, MapPin, Phone } from "lucide-react"
 import { AcceptJobButton } from "@/components/accept-job-button"
 
 export default async function BrowseJobsPage() {
@@ -24,14 +24,14 @@ export default async function BrowseJobsPage() {
     redirect("/dashboard")
   }
 
-  const availableJobs = await getAvailableJobsByCategory(profile.category, session.userId)
+  const availableJobs = await getAllAvailableJobs(session.userId)
 
   return (
     <div className="space-y-6 max-w-5xl">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Available Jobs</h1>
+        <h1 className="text-3xl font-bold tracking-tight">Hiring Dashboard</h1>
         <p className="text-muted-foreground mt-2">
-          Browse job opportunities in your category: <strong>{profile.category}</strong>
+          Browse all available job opportunities
         </p>
       </div>
 
@@ -55,29 +55,55 @@ export default async function BrowseJobsPage() {
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-2">
                       <CardTitle className="text-2xl">{job.title}</CardTitle>
-                      <Badge variant="default">Open</Badge>
+                      <Badge variant={job.status === 'open' ? 'default' : 'secondary'}>
+                        {job.status === 'open' ? 'Open' : 'Closed'}
+                      </Badge>
                     </div>
-                    <CardDescription className="text-base leading-relaxed mt-3">{job.description}</CardDescription>
+                    <div className="flex items-center gap-4 text-sm text-muted-foreground mb-3">
+                      <span className="font-medium">{job.category}</span>
+                      {job.subCategory && <span>• {job.subCategory}</span>}
+                    </div>
+                    <CardDescription className="text-base leading-relaxed">{job.description}</CardDescription>
                   </div>
+                  {job.workPhoto && (
+                    <img
+                      src={job.workPhoto}
+                      alt="Work photo"
+                      className="w-20 h-20 rounded-lg object-cover border"
+                    />
+                  )}
                 </div>
               </CardHeader>
               <CardContent>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-6 text-sm text-muted-foreground">
-                    <div className="flex items-center gap-2">
-                      <Briefcase className="h-4 w-4" />
-                      <span>{job.category}</span>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2 text-sm">
+                      <MapPin className="h-4 w-4 text-muted-foreground" />
+                      <span>{job.city}{job.location && `, ${job.location}`}</span>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <Calendar className="h-4 w-4" />
-                      <span>Posted {new Date(job.createdAt).toLocaleDateString()}</span>
+                    <div className="flex items-center gap-2 text-sm">
+                      <Calendar className="h-4 w-4 text-muted-foreground" />
+                      <span>Work Date: {new Date(job.workDate).toLocaleDateString()}</span>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <User className="h-4 w-4" />
-                      <span>Job ID: {job.id.slice(-6)}</span>
+                    <div className="flex items-center gap-2 text-sm">
+                      <Phone className="h-4 w-4 text-muted-foreground" />
+                      <span>{job.mobile}</span>
                     </div>
                   </div>
+                  <div className="space-y-2">
+                    <div className="text-lg font-semibold text-primary">
+                      ₹{job.budget?.toLocaleString()}
+                    </div>
+                    <div className="text-sm text-muted-foreground">
+                      Posted {new Date(job.createdAt).toLocaleDateString()}
+                    </div>
+                    <div className="text-sm text-muted-foreground">
+                      Job ID: {job.id?.slice(-6) || 'N/A'}
+                    </div>
+                  </div>
+                </div>
 
+                <div className="flex justify-end">
                   <AcceptJobButton jobId={job.id} />
                 </div>
               </CardContent>

@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
-import { LayoutDashboard, User, Briefcase, FileText, Plus, Settings } from "lucide-react"
+import { LayoutDashboard, User, Briefcase, FileText, Plus, Settings, Users } from "lucide-react"
 
 interface DashboardNavProps {
   userRole?: string
@@ -34,6 +34,11 @@ export function DashboardNav({ userRole }: DashboardNavProps) {
             title: "Browse Jobs",
             href: "/dashboard/jobs",
             icon: Briefcase,
+          },
+          {
+            title: "Worker Profiles",
+            href: "/dashboard/profiles",
+            icon: Users,
           },
         ]
       case "hiring":

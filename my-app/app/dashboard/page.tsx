@@ -115,7 +115,7 @@ export default async function DashboardPage() {
           </div>
 
           {/* Quick Actions */}
-          <div className={`grid gap-6 ${profile.role === 'worker' ? 'md:grid-cols-1 max-w-md' : 'md:grid-cols-2'}`}>
+          <div className={`grid gap-6 ${profile.role === 'worker' ? 'md:grid-cols-1 max-w-md' : 'md:grid-cols-1'}`}>
             {profile.role !== 'worker' && (
               <Card>
                 <CardHeader>
@@ -131,7 +131,7 @@ export default async function DashboardPage() {
                   <Button asChild className="w-full">
                     <Link href="/dashboard/jobs/create">
                       <Plus className="h-4 w-4 mr-2" />
-                      Post a New Job
+                      Post Your Work
                     </Link>
                   </Button>
                   <Button asChild variant="outline" className="w-full">
@@ -139,36 +139,48 @@ export default async function DashboardPage() {
                       View My Jobs
                     </Link>
                   </Button>
+                  <Button asChild variant="ghost" size="sm" className="w-full">
+                    <Link href="/dashboard/switch-role?to=worker">
+                      Switch to Worker Mode
+                    </Link>
+                  </Button>
                 </CardContent>
               </Card>
             )}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Search className="h-5 w-5" />
-                  Find Work
-                </CardTitle>
-                <CardDescription>
-                  Browse and apply for available jobs
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <Button asChild className="w-full">
-                  <Link href="/dashboard/jobs">
-                    Browse Available Jobs
-                  </Link>
-                </Button>
-                <div className="text-sm text-muted-foreground">
-                  {stats.availableJobs > 0 ? (
-                    <span className="text-primary font-medium">
-                      {stats.availableJobs} jobs available in your category
-                    </span>
-                  ) : (
-                    "No jobs currently available in your category"
-                  )}
-                </div>
-              </CardContent>
-            </Card>
+            {profile.role === 'worker' && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Briefcase className="h-5 w-5" />
+                    Find Work
+                  </CardTitle>
+                  <CardDescription>
+                    Browse and accept available jobs
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <Button asChild className="w-full">
+                    <Link href="/dashboard/jobs">
+                      Browse Jobs
+                    </Link>
+                  </Button>
+                  <Button asChild variant="outline" className="w-full">
+                    <Link href="/dashboard/switch-role?to=hiring">
+                      Publish Your Work
+                    </Link>
+                  </Button>
+                  <div className="text-sm text-muted-foreground">
+                    {stats.availableJobs > 0 ? (
+                      <span className="text-primary font-medium">
+                        {stats.availableJobs} jobs available in your category
+                      </span>
+                    ) : (
+                      "No jobs currently available in your category"
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
           </div>
 
           {/* Profile Status */}
@@ -185,10 +197,14 @@ export default async function DashboardPage() {
             <CardContent>
               <div className="flex items-center justify-between">
                 <div className="space-y-1">
-                  <p className="text-sm font-medium">Category</p>
-                  <span className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold bg-secondary text-secondary-foreground">
-                    {profile.category}
-                  </span>
+                  <p className="text-sm font-medium">Categories</p>
+                  <div className="flex flex-wrap gap-1">
+                    {(profile.categories || (profile.category ? [profile.category] : [])).map((cat: string) => (
+                      <span key={cat} className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold bg-secondary text-secondary-foreground">
+                        {cat}
+                      </span>
+                    ))}
+                  </div>
                 </div>
                 <Button asChild variant="outline">
                   <Link href="/dashboard/my-jobs/profile/edit">

@@ -1,6 +1,42 @@
 import { NextRequest, NextResponse } from "next/server"
 import { getSession } from "@/lib/auth"
-import { createProfile, updateProfile } from "@/lib/db"
+import { createProfile, updateProfile, getAllProfiles } from "@/lib/db"
+
+export async function GET(request: NextRequest) {
+  try {
+    const session = await getSession()
+
+    if (!session) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
+
+    const profiles = await getAllProfiles()
+
+    // Filter out sensitive information and return public profiles
+    const publicProfiles = profiles.map(profile => ({
+      _id: profile._id,
+      userId: profile.userId,
+      role: profile.role,
+      category: profile.category,
+      age: profile.age,
+      profilePhoto: profile.profilePhoto,
+      bio: profile.bio,
+      skills: profile.skills,
+      experience: profile.experience,
+      rating: profile.rating,
+      reviewCount: profile.reviewCount,
+      isVerified: profile.isVerified,
+    }))
+
+    return NextResponse.json({ profiles: publicProfiles })
+  } catch (error) {
+    console.error("Profile fetch error:", error)
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    )
+  }
+}
 
 export async function POST(request: NextRequest) {
   try {

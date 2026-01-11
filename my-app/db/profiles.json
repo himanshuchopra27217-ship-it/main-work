@@ -1,0 +1,12 @@
+[
+  {
+    "_id": "1",
+    "userId": "1",
+    "role": "hiring",
+    "category": "Web Developer",
+    "age": 25,
+    "mobile": "1234567890",
+    "createdAt": "2026-01-11T04:32:49.802Z",
+    "updatedAt": "2026-01-11T05:25:39.894Z"
+  }
+]

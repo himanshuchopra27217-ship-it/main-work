@@ -1,201 +1,13 @@
-// MongoDB database integration
+// Database integration - uses file-based DB in development, MongoDB in production
 import clientPromise from './mongodb';
+import { fileDb } from './file-db';
 import type { User, UserProfile, JobPost } from './schemas';
 
-// ============= PROFILE FUNCTIONS =============
+// Use file-based DB in development, MongoDB in production
+const isDevelopment = process.env.NODE_ENV === 'development';
 
-export async function getUserProfile(userId: string): Promise<UserProfile | null> {
-  try {
-    const client = await clientPromise;
-    const db = client.db('jobapp');
-    const profile = await db.collection('profiles').findOne({ userId });
-    return profile as UserProfile | null;
-  } catch (error) {
-    console.error('Error fetching user profile:', error);
-    return null;
-  }
-}
-
-export async function createProfile(data: any): Promise<UserProfile> {
-  try {
-    const client = await clientPromise;
-    const db = client.db('jobapp');
-    const newProfile = {
-      ...data,
-      createdAt: new Date().toISOString(),
-    };
-    const result = await db.collection('profiles').insertOne(newProfile);
-    console.log('✓ Profile created successfully');
-    return { _id: result.insertedId, ...newProfile } as UserProfile;
-  } catch (error) {
-    console.error('Error creating profile:', error);
-    throw error;
-  }
-}
-
-export async function updateProfile(userId: string, data: any): Promise<UserProfile | null> {
-  try {
-    const client = await clientPromise;
-    const db = client.db('jobapp');
-    const result = await db.collection('profiles').findOneAndUpdate(
-      { userId },
-      { $set: { ...data, updatedAt: new Date().toISOString() } },
-      { returnDocument: 'after' }
-    );
-    return result?.value as UserProfile | null;
-  } catch (error) {
-    console.error('Error updating profile:', error);
-    throw error;
-  }
-}
-
-export async function getJobById(jobId: string): Promise<JobPost | null> {
-  try {
-    const client = await clientPromise;
-    const db = client.db('jobapp');
-    const { ObjectId } = require('mongodb');
-    const job = await db.collection('jobPosts').findOne({ _id: new ObjectId(jobId) });
-    return job as JobPost | null;
-  } catch (error) {
-    console.error('Error fetching job by ID:', error);
-    return null;
-  }
-}
-
-export async function getJobsByUser(userId: string): Promise<JobPost[]> {
-  try {
-    const client = await clientPromise;
-    const db = client.db('jobapp');
-    const jobs = await db.collection('jobPosts').find({ createdBy: userId }).toArray();
-    return jobs as JobPost[];
-  } catch (error) {
-    console.error('Error fetching user jobs:', error);
-    return [];
-  }
-}
-
-export async function getAssignedJobsByUser(userId: string): Promise<JobPost[]> {
-  try {
-    const client = await clientPromise;
-    const db = client.db('jobapp');
-    const jobs = await db.collection('jobPosts').find({ assignedTo: userId }).toArray();
-    return jobs as JobPost[];
-  } catch (error) {
-    console.error('Error fetching assigned jobs:', error);
-    return [];
-  }
-}
-
-export async function getAvailableJobsByCategory(category: string, userId: string): Promise<JobPost[]> {
-  try {
-    const client = await clientPromise;
-    const db = client.db('jobapp');
-    const jobs = await db.collection('jobPosts').find({
-      category,
-      status: 'open',
-      createdBy: { $ne: userId }
-    }).toArray();
-    return jobs as JobPost[];
-  } catch (error) {
-    console.error('Error fetching available jobs:', error);
-    return [];
-  }
-}
-
-export async function createJob(jobData: any): Promise<JobPost> {
-  try {
-    const client = await clientPromise;
-    const db = client.db('jobapp');
-    const newJob = {
-      ...jobData,
-      status: 'open',
-      acceptedCount: 0,
-      acceptedBy: [],
-      createdAt: new Date().toISOString(),
-    };
-    const result = await db.collection('jobPosts').insertOne(newJob);
-    console.log('✓ Job created successfully');
-    return { _id: result.insertedId, ...newJob } as JobPost;
-  } catch (error) {
-    console.error('Error creating job:', error);
-    throw error;
-  }
-}
-
-export async function updateJob(jobId: string, updates: any): Promise<JobPost | null> {
-  try {
-    const client = await clientPromise;
-    const db = client.db('jobapp');
-    const { ObjectId } = require('mongodb');
-    const result = await db.collection('jobPosts').findOneAndUpdate(
-      { _id: new ObjectId(jobId) },
-      { $set: { ...updates, updatedAt: new Date().toISOString() } },
-      { returnDocument: 'after' }
-    );
-    return result?.value as JobPost | null;
-  } catch (error) {
-    console.error('Error updating job:', error);
-    throw error;
-  }
-}
-
-export async function deleteJob(jobId: string): Promise<boolean> {
-  try {
-    const client = await clientPromise;
-    const db = client.db('jobapp');
-    const { ObjectId } = require('mongodb');
-    const result = await db.collection('jobPosts').deleteOne({ _id: new ObjectId(jobId) });
-    return result.deletedCount > 0;
-  } catch (error) {
-    console.error('Error deleting job:', error);
-    throw error;
-  }
-}
-
-// ============= USER FUNCTIONS =============
-
-export const db = {
-  // Find user by email
-  findUserByEmail: async (email: string): Promise<User | null> => {
-    try {
-      const client = await clientPromise;
-      const dbConnection = client.db('jobapp');
-      const user = await dbConnection.collection('users').findOne({ email });
-      return user as User | null;
-    } catch (error) {
-      console.error('Error finding user by email:', error);
-      return null;
-    }
-  },
-
-  // Find user by mobile
-  findUserByMobile: async (mobile: string): Promise<User | null> => {
-    try {
-      const client = await clientPromise;
-      const dbConnection = client.db('jobapp');
-      const user = await dbConnection.collection('users').findOne({ mobile });
-      return user as User | null;
-    } catch (error) {
-      console.error('Error finding user by mobile:', error);
-      return null;
-    }
-  },
-
-  // Find user by ID
-  findUserById: async (id: string): Promise<User | null> => {
-    try {
-      const client = await clientPromise;
-      const dbConnection = client.db('jobapp');
-      const { ObjectId } = require('mongodb');
-      const user = await dbConnection.collection('users').findOne({ _id: new ObjectId(id) });
-      return user as User | null;
-    } catch (error) {
-      console.error('Error finding user by ID:', error);
-      return null;
-    }
-  },
-
-  // Find user by email or mobile
+export const db = isDevelopment ? fileDb : {
+  // MongoDB implementations for production
   findUserByEmailOrMobile: async (identifier: string): Promise<User | null> => {
     try {
       const client = await clientPromise;
@@ -210,7 +22,42 @@ export const db = {
     }
   },
 
-  // Find user by reset token
+  findUserById: async (id: string): Promise<User | null> => {
+    try {
+      const client = await clientPromise;
+      const dbConnection = client.db('jobapp');
+      const user = await dbConnection.collection('users').findOne({ _id: id });
+      return user as User | null;
+    } catch (error) {
+      console.error('Error finding user by ID:', error);
+      return null;
+    }
+  },
+
+  findUserByEmail: async (email: string): Promise<User | null> => {
+    try {
+      const client = await clientPromise;
+      const dbConnection = client.db('jobapp');
+      const user = await dbConnection.collection('users').findOne({ email });
+      return user as User | null;
+    } catch (error) {
+      console.error('Error finding user by email:', error);
+      return null;
+    }
+  },
+
+  findUserByMobile: async (mobile: string): Promise<User | null> => {
+    try {
+      const client = await clientPromise;
+      const dbConnection = client.db('jobapp');
+      const user = await dbConnection.collection('users').findOne({ mobile });
+      return user as User | null;
+    } catch (error) {
+      console.error('Error finding user by mobile:', error);
+      return null;
+    }
+  },
+
   findUserByResetToken: async (token: string): Promise<User | null> => {
     try {
       const client = await clientPromise;
@@ -226,28 +73,12 @@ export const db = {
     }
   },
 
-  // Create new user
-  createUser: async (user: User): Promise<User> => {
-    try {
-      const client = await clientPromise;
-      const dbConnection = client.db('jobapp');
-      const result = await dbConnection.collection('users').insertOne(user);
-      console.log('✓ User created successfully');
-      return { _id: result.insertedId, ...user } as User;
-    } catch (error) {
-      console.error('✗ Error creating user:', error);
-      throw error;
-    }
-  },
-
-  // Update user
   updateUser: async (id: string, updates: Partial<User>): Promise<User | null> => {
     try {
       const client = await clientPromise;
       const dbConnection = client.db('jobapp');
-      const { ObjectId } = require('mongodb');
       const result = await dbConnection.collection('users').findOneAndUpdate(
-        { _id: new ObjectId(id) },
+        { _id: id },
         { $set: updates },
         { returnDocument: 'after' }
       );
@@ -258,16 +89,203 @@ export const db = {
     }
   },
 
-  // Get all users
-  getAllUsers: async (): Promise<User[]> => {
+  createUser: async (userData: any): Promise<User> => {
     try {
       const client = await clientPromise;
       const dbConnection = client.db('jobapp');
-      const users = await dbConnection.collection('users').find({}).toArray();
-      return users as User[];
+      const result = await dbConnection.collection('users').insertOne({
+        ...userData,
+        createdAt: new Date().toISOString(),
+      });
+      return { _id: result.insertedId, ...userData } as User;
     } catch (error) {
-      console.error('Error fetching all users:', error);
+      console.error('Error creating user:', error);
+      throw error;
+    }
+  },
+
+  getUserProfile: async (userId: string): Promise<UserProfile | null> => {
+    try {
+      const client = await clientPromise;
+      const db = client.db('jobapp');
+      const profile = await db.collection('profiles').findOne({ userId });
+      return profile as UserProfile | null;
+    } catch (error) {
+      console.error('Error fetching user profile:', error);
+      return null;
+    }
+  },
+
+  createProfile: async (data: any): Promise<UserProfile> => {
+    try {
+      const client = await clientPromise;
+      const db = client.db('jobapp');
+      const newProfile = {
+        ...data,
+        createdAt: new Date().toISOString(),
+      };
+      const result = await db.collection('profiles').insertOne(newProfile);
+      console.log('✓ Profile created successfully');
+      return { _id: result.insertedId, ...newProfile } as UserProfile;
+    } catch (error) {
+      console.error('Error creating profile:', error);
+      throw error;
+    }
+  },
+
+  updateProfile: async (userId: string, data: any): Promise<UserProfile | null> => {
+    try {
+      const client = await clientPromise;
+      const db = client.db('jobapp');
+      const result = await db.collection('profiles').findOneAndUpdate(
+        { userId },
+        { $set: { ...data, updatedAt: new Date().toISOString() } },
+        { returnDocument: 'after' }
+      );
+      return result?.value as UserProfile | null;
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      throw error;
+    }
+  },
+
+  getAllProfiles: async (): Promise<UserProfile[]> => {
+    try {
+      const client = await clientPromise;
+      const db = client.db('jobapp');
+      const profiles = await db.collection('profiles').find({}).toArray();
+      return profiles as UserProfile[];
+    } catch (error) {
+      console.error('Error fetching all profiles:', error);
       return [];
     }
-  }
+  },
+
+  getAllAvailableJobs: async (excludeUserId?: string): Promise<JobPost[]> => {
+    try {
+      const client = await clientPromise;
+      const db = client.db('jobapp');
+      const query = excludeUserId ? { status: 'open', userId: { $ne: excludeUserId } } : { status: 'open' };
+      const jobs = await db.collection('jobs').find(query).toArray();
+      return jobs as JobPost[];
+    } catch (error) {
+      console.error('Error fetching jobs:', error);
+      return [];
+    }
+  },
+
+  createJob: async (jobData: any): Promise<JobPost> => {
+    try {
+      const client = await clientPromise;
+      const db = client.db('jobapp');
+      const newJob = {
+        ...jobData,
+        status: 'open',
+        createdAt: new Date().toISOString(),
+      };
+      const result = await db.collection('jobs').insertOne(newJob);
+      return { _id: result.insertedId, ...newJob } as JobPost;
+    } catch (error) {
+      console.error('Error creating job:', error);
+      throw error;
+    }
+  },
+
+  getJobById: async (id: string): Promise<JobPost | null> => {
+    try {
+      const client = await clientPromise;
+      const db = client.db('jobapp');
+      const job = await db.collection('jobs').findOne({ _id: id });
+      return job as JobPost | null;
+    } catch (error) {
+      console.error('Error fetching job:', error);
+      return null;
+    }
+  },
+
+  updateJob: async (id: string, data: any): Promise<JobPost | null> => {
+    try {
+      const client = await clientPromise;
+      const db = client.db('jobapp');
+      const result = await db.collection('jobs').findOneAndUpdate(
+        { _id: id },
+        { $set: { ...data, updatedAt: new Date().toISOString() } },
+        { returnDocument: 'after' }
+      );
+      return result?.value as JobPost | null;
+    } catch (error) {
+      console.error('Error updating job:', error);
+      throw error;
+    }
+  },
+  deleteJob: async (id: string): Promise<boolean> => {
+    try {
+      const client = await clientPromise;
+      const db = client.db('jobapp');
+      const result = await db.collection('jobs').deleteOne({ _id: id });
+      return result.deletedCount > 0;
+    } catch (error) {
+      console.error('Error deleting job:', error);
+      return false;
+    }
+  },
+  getJobsByUser: async (userId: string): Promise<JobPost[]> => {
+    try {
+      const client = await clientPromise;
+      const db = client.db('jobapp');
+      const jobs = await db.collection('jobs').find({ userId }).toArray();
+      return jobs as JobPost[];
+    } catch (error) {
+      console.error('Error fetching jobs by user:', error);
+      return [];
+    }
+  },
+
+  getAssignedJobsByUser: async (userId: string): Promise<JobPost[]> => {
+    try {
+      const client = await clientPromise;
+      const db = client.db('jobapp');
+      const jobs = await db.collection('jobs').find({ assignedTo: userId }).toArray();
+      return jobs as JobPost[];
+    } catch (error) {
+      console.error('Error fetching assigned jobs by user:', error);
+      return [];
+    }
+  },
+
+  getAvailableJobsByCategory: async (category: string, excludeUserId?: string): Promise<JobPost[]> => {
+    try {
+      const client = await clientPromise;
+      const db = client.db('jobapp');
+      const query = excludeUserId 
+        ? { category, status: 'open', userId: { $ne: excludeUserId } } 
+        : { category, status: 'open' };
+      const jobs = await db.collection('jobs').find(query).toArray();
+      return jobs as JobPost[];
+    } catch (error) {
+      console.error('Error fetching available jobs by category:', error);
+      return [];
+    }
+  },
 };
+
+// Named exports for backward compatibility
+export const findUserByEmailOrMobile = db.findUserByEmailOrMobile;
+export const findUserByEmail = db.findUserByEmail;
+export const findUserByMobile = db.findUserByMobile;
+export const findUserById = db.findUserById;
+export const findUserByResetToken = db.findUserByResetToken;
+export const createUser = db.createUser;
+export const updateUser = db.updateUser;
+export const getUserProfile = db.getUserProfile;
+export const createProfile = db.createProfile;
+export const updateProfile = db.updateProfile;
+export const getAllProfiles = db.getAllProfiles;
+export const getAllAvailableJobs = db.getAllAvailableJobs;
+export const createJob = db.createJob;
+export const getJobById = db.getJobById;
+export const updateJob = db.updateJob;
+export const deleteJob = db.deleteJob;
+export const getJobsByUser = db.getJobsByUser;
+export const getAssignedJobsByUser = db.getAssignedJobsByUser;
+export const getAvailableJobsByCategory = db.getAvailableJobsByCategory;

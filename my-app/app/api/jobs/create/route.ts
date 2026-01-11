@@ -4,9 +4,9 @@ import { createJob } from "@/lib/db"
 export async function POST(request: Request) {
   try {
     const body = await request.json()
-    const { userId, category, title, description, budget, location, priority, deadline } = body
+    const { userId, category, subCategory, title, description, budget, mobile, city, status, workPhoto, workDate, location } = body
 
-    if (!userId || !category || !title || !description) {
+    if (!userId || !category || !title || !description || !budget || !mobile || !city || !workDate) {
       return NextResponse.json({ error: "Required fields are missing" }, { status: 400 })
     }
 
@@ -14,13 +14,16 @@ export async function POST(request: Request) {
       title,
       description,
       category,
+      subCategory: subCategory || undefined,
       createdBy: userId,
       assignedTo: null,
-      status: "open",
-      budget: budget || undefined,
+      status: status || "open",
+      budget: parseFloat(budget),
+      mobile,
+      city,
+      workPhoto: workPhoto || undefined,
+      workDate,
       location: location || undefined,
-      priority: priority || "medium",
-      deadline: deadline || undefined,
       createdAt: new Date().toISOString(),
     })
 

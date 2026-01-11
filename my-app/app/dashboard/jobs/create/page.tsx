@@ -24,8 +24,8 @@ export default async function CreateJobPage() {
   return (
     <div className="max-w-3xl">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold tracking-tight">Create Job Post</h1>
-        <p className="text-muted-foreground mt-2">Post a new job opportunity in your category</p>
+        <h1 className="text-3xl font-bold tracking-tight">Post Your Work</h1>
+        <p className="text-muted-foreground mt-2">Create a new job posting to find qualified workers</p>
       </div>
 
       <Card>

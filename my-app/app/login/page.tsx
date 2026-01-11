@@ -33,12 +33,16 @@ const handleSubmit = async (e: React.FormEvent) => {
   setError("")
   setLoading(true)
 
+  console.log('Form data:', formData); // Debug log
+
   try {
     const response = await fetch("/api/auth/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(formData),
     })
+
+    console.log('Response status:', response.status); // Debug log
 
     const contentType = response.headers.get("content-type")
 
@@ -50,10 +54,13 @@ const handleSubmit = async (e: React.FormEvent) => {
 
     const data = await response.json()
 
+    console.log('Login response data:', data); // Debug log
+
     if (!response.ok) {
       throw new Error(data.error || "Login failed")
     }
 
+    console.log('Login successful, redirecting to dashboard...'); // Debug log
     router.push("/dashboard")
   } catch (err) {
     setError(err instanceof Error ? err.message : "An error occurred")
