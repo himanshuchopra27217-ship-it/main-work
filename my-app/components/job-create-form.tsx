@@ -12,15 +12,15 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 
 interface JobCreateFormProps {
   userId: string
-  userCategory: string
+  userCategories: string[]
 }
 
-export function JobCreateForm({ userId, userCategory }: JobCreateFormProps) {
+export function JobCreateForm({ userId, userCategories }: JobCreateFormProps) {
   const router = useRouter()
   const [formData, setFormData] = useState({
     title: "",
     description: "",
-    category: userCategory,
+    category: userCategories[0] || "",
     subCategory: "",
     budget: "",
     mobile: "",

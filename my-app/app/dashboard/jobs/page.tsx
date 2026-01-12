@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation"
 import { getSession, getUserProfile } from "@/lib/auth"
-import { getAllAvailableJobs } from "@/lib/db"
+import { getAllAvailableJobs, getAvailableJobsByCategory } from "@/lib/db"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Briefcase, Calendar, User, MapPin, Phone } from "lucide-react"
@@ -24,7 +24,21 @@ export default async function BrowseJobsPage() {
     redirect("/dashboard")
   }
 
-  const availableJobs = await getAllAvailableJobs(session.userId)
+  const userCategories = profile.categories || (profile.category ? [profile.category] : [])
+  
+  // Get jobs from user's categories
+  let availableJobs: any[] = []
+  if (userCategories.length > 0) {
+    // Get jobs from all user categories
+    const jobsPromises = userCategories.map(category => getAvailableJobsByCategory(category, session.userId))
+    const jobsArrays = await Promise.all(jobsPromises)
+    // Flatten and remove duplicates
+    const allJobs = jobsArrays.flat()
+    const uniqueJobs = allJobs.filter((job, index, self) => 
+      index === self.findIndex(j => j._id === job._id)
+    )
+    availableJobs = uniqueJobs
+  }
 
   return (
     <div className="space-y-6 max-w-5xl">
@@ -41,7 +55,7 @@ export default async function BrowseJobsPage() {
             <Briefcase className="h-16 w-16 text-muted-foreground mb-4" />
             <h3 className="text-xl font-semibold mb-2">No Jobs Available</h3>
             <p className="text-muted-foreground text-center max-w-md">
-              There are currently no open job posts in the <strong>{profile.category}</strong> category. Check back
+              There are currently no open job posts in your selected categories. Check back
               later or consider posting your own job.
             </p>
           </CardContent>
@@ -85,10 +99,6 @@ export default async function BrowseJobsPage() {
                       <Calendar className="h-4 w-4 text-muted-foreground" />
                       <span>Work Date: {new Date(job.workDate).toLocaleDateString()}</span>
                     </div>
-                    <div className="flex items-center gap-2 text-sm">
-                      <Phone className="h-4 w-4 text-muted-foreground" />
-                      <span>{job.mobile}</span>
-                    </div>
                   </div>
                   <div className="space-y-2">
                     <div className="text-lg font-semibold text-primary">
@@ -104,7 +114,7 @@ export default async function BrowseJobsPage() {
                 </div>
 
                 <div className="flex justify-end">
-                  <AcceptJobButton jobId={job.id} />
+                  <AcceptJobButton jobId={job.id} mobile={job.mobile} />
                 </div>
               </CardContent>
             </Card>

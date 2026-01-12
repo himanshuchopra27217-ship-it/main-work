@@ -30,7 +30,8 @@ export default async function DashboardPage() {
   // Get some stats for the dashboard
   const createdJobs = await getJobsByUser(session.userId)
   const assignedJobs = await getAssignedJobsByUser(session.userId)
-  const availableJobs = await getAvailableJobsByCategory(profile.category, session.userId)
+  const userCategories = profile.categories || (profile.category ? [profile.category] : [])
+  const availableJobs = userCategories.length > 0 ? await getAvailableJobsByCategory(userCategories[0], session.userId) : []
 
   const stats = {
     postedJobs: createdJobs.length,
@@ -44,7 +45,7 @@ export default async function DashboardPage() {
         <div className="flex h-16 items-center px-6 gap-4">
           <div className="flex items-center gap-2">
             <Briefcase className="h-6 w-6 text-primary" />
-            <span className="font-semibold text-xl">Kaamwork</span>
+            <span className="font-semibold text-xl">KaamGuru</span>
           </div>
           <div className="ml-auto">
             <Button variant="outline" asChild>
@@ -64,8 +65,8 @@ export default async function DashboardPage() {
             </h1>
             <p className="text-muted-foreground mt-2">
               {profile.role === 'worker' 
-                ? `Find work opportunities in the ${profile.category} category.`
-                : `Here's an overview of your job activity in the ${profile.category} category.`
+                ? `Find work opportunities in your selected categories.`
+                : `Here's an overview of your job activity.`
               }
             </p>
           </div>

@@ -1,14 +1,13 @@
 "use client"
 
 import type React from "react"
-
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent } from "@/components/ui/card"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { DateInput } from "./ui/DateInput"
 
 const categories = [
   "Plumber",
@@ -37,21 +36,34 @@ export function ProfileEditForm({ profile }: ProfileEditFormProps) {
     mobile: profile.mobile || "",
     profilePhoto: profile.profilePhoto || "",
   })
+
+  // ✅ Single state for DOB
+  const [birthDate, setBirthDate] = useState<Date | null>(
+    profile.age ? new Date(new Date().getFullYear() - profile.age, 0, 1) : null
+  )
+
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [previewUrl, setPreviewUrl] = useState<string>(profile.profilePhoto || "")
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
 
+  const calculateAge = (birthDate: Date) => {
+    const today = new Date()
+    let age = today.getFullYear() - birthDate.getFullYear()
+    const monthDiff = today.getMonth() - birthDate.getMonth()
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+      age--
+    }
+    return age
+  }
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (file) {
-      // Validate file type
-      if (!file.type.startsWith('image/')) {
+      if (!file.type.startsWith("image/")) {
         setError("Please select a valid image file")
         return
       }
-
-      // Validate file size (5MB limit)
       if (file.size > 5 * 1024 * 1024) {
         setError("File size must be less than 5MB")
         return
@@ -60,7 +72,6 @@ export function ProfileEditForm({ profile }: ProfileEditFormProps) {
       setSelectedFile(file)
       setError("")
 
-      // Create preview URL
       const reader = new FileReader()
       reader.onload = (e) => {
         const result = e.target?.result as string
@@ -82,11 +93,24 @@ export function ProfileEditForm({ profile }: ProfileEditFormProps) {
       return
     }
 
+    if (!birthDate || !formData.mobile) {
+      setError("Please fill in all required fields (birth date and mobile)")
+      setLoading(false)
+      return
+    }
+
+    const age = calculateAge(birthDate)
+
     try {
       const response = await fetch("/api/profile", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...formData, userId: profile.userId }),
+        credentials: "include",
+        body: JSON.stringify({
+          ...formData,
+          age,
+          userId: profile.userId,
+        }),
       })
 
       const data = await response.json()
@@ -108,13 +132,15 @@ export function ProfileEditForm({ profile }: ProfileEditFormProps) {
     <Card>
       <CardContent className="pt-6">
         <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Profile Photo */}
           <div className="space-y-2">
-            <Label htmlFor="profilePhoto">Profile Photo (Optional)</Label>
+            <Label htmlFor="profilePhoto">Profile Photo </Label>
             <div className="space-y-4">
               <Input
                 id="profilePhoto"
                 type="file"
                 accept="image/*"
+                required
                 onChange={handleFileChange}
                 className="file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-primary-foreground hover:file:bg-primary/90"
               />
@@ -145,23 +171,7 @@ export function ProfileEditForm({ profile }: ProfileEditFormProps) {
             <p className="text-xs text-muted-foreground">Upload a profile photo (max 5MB, JPG/PNG)</p>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="role">
-              Role <span className="text-destructive">*</span>
-            </Label>
-            <Select value={formData.role} onValueChange={(value: "admin" | "worker" | "hiring") => setFormData({ ...formData, role: value })}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select your role" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="worker">Worker - Browse and accept jobs</SelectItem>
-                <SelectItem value="hiring">Hiring - Post and manage jobs</SelectItem>
-                <SelectItem value="admin">Admin - Full access</SelectItem>
-              </SelectContent>
-            </Select>
-            <p className="text-xs text-muted-foreground">Choose your primary role on the platform</p>
-          </div>
-
+          {/* Categories */}
           <div className="space-y-2">
             <Label>
               Categories <span className="text-destructive">*</span>
@@ -176,12 +186,12 @@ export function ProfileEditForm({ profile }: ProfileEditFormProps) {
                       if (e.target.checked) {
                         setFormData({
                           ...formData,
-                          categories: [...formData.categories, cat]
+                          categories: [...formData.categories, cat],
                         })
                       } else {
                         setFormData({
                           ...formData,
-                          categories: formData.categories.filter(c => c !== cat)
+                          categories: formData.categories.filter((c: string) => c !== cat),
                         })
                       }
                     }}
@@ -194,22 +204,15 @@ export function ProfileEditForm({ profile }: ProfileEditFormProps) {
             <p className="text-xs text-muted-foreground">Select one or more categories that match your skills</p>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="age">
-              Age <span className="text-destructive">*</span>
-            </Label>
-            <Input
-              id="age"
-              type="number"
-              placeholder="25"
-              min="18"
-              max="100"
-              value={formData.age}
-              onChange={(e) => setFormData({ ...formData, age: e.target.value })}
-              required
-            />
-          </div>
+          {/* Date of Birth */}
+          <DateInput
+            label="Date of Birth"
+            value={birthDate}
+            onChange={setBirthDate}
+            required
+          />
 
+          {/* Mobile Number */}
           <div className="space-y-2">
             <Label htmlFor="mobile">
               Mobile Number <span className="text-destructive">*</span>
@@ -224,8 +227,14 @@ export function ProfileEditForm({ profile }: ProfileEditFormProps) {
             />
           </div>
 
-          {error && <div className="text-sm text-destructive bg-destructive/10 p-3 rounded-md">{error}</div>}
+          {/* Error Message */}
+          {error && (
+            <div className="text-sm text-destructive bg-destructive/10 p-3 rounded-md">
+              {error}
+            </div>
+          )}
 
+          {/* Switch Role */}
           {profile.role === "worker" && (
             <div className="bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
               <h3 className="text-sm font-medium text-blue-900 dark:text-blue-100 mb-2">
@@ -246,11 +255,21 @@ export function ProfileEditForm({ profile }: ProfileEditFormProps) {
             </div>
           )}
 
+          {/* Actions */}
           <div className="flex gap-3">
             <Button type="button" variant="outline" onClick={() => router.back()}>
               Cancel
             </Button>
-            <Button type="submit" disabled={loading || !formData.category} className="flex-1">
+            <Button
+              type="submit"
+              disabled={
+                loading ||
+                formData.categories.length === 0 ||
+                !birthDate ||
+                !formData.mobile
+              }
+              className="flex-1"
+            >
               {loading ? "Saving..." : "Update Profile"}
             </Button>
           </div>

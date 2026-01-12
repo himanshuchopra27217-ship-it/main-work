@@ -4,7 +4,7 @@ import { getUserProfile } from "@/lib/db"
 import { SwitchRoleForm } from "@/components/switch-role-form"
 
 interface SwitchRolePageProps {
-  searchParams: { to?: string }
+  searchParams: Promise<{ to?: string }>
 }
 
 export default async function SwitchRolePage({ searchParams }: SwitchRolePageProps) {
@@ -20,7 +20,8 @@ export default async function SwitchRolePage({ searchParams }: SwitchRolePagePro
     redirect("/dashboard/my-jobs/setup")
   }
 
-  const targetRole = searchParams.to === 'hiring' ? 'hiring' : 'worker'
+  const params = await searchParams
+  const targetRole = params.to === 'hiring' ? 'hiring' : 'worker'
 
   // If already the target role, redirect back to dashboard
   if (profile.role === targetRole) {

@@ -30,6 +30,7 @@ export interface UserProfile {
   rating?: number; // 0-5 rating
   reviewCount?: number;
   isVerified?: boolean;
+  availability?: string[]; // Array of available dates (ISO date strings)
   createdAt: string;
   updatedAt?: string;
 }

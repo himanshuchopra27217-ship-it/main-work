@@ -1,13 +1,12 @@
 import { NextResponse } from "next/server"
 import { getJobById, updateJob } from "@/lib/db"
-import { cookies } from "next/headers"
+import { getSession } from "@/lib/auth"
 
 export async function POST(request: Request) {
   try {
-    const cookieStore = await cookies()
-    const userId = cookieStore.get("userId")?.value
+    const session = await getSession()
 
-    if (!userId) {
+    if (!session) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
@@ -30,13 +29,13 @@ export async function POST(request: Request) {
     }
 
     // Check if user is trying to accept their own job
-    if (job.createdBy === userId) {
+    if (job.createdBy === session.userId) {
       return NextResponse.json({ error: "You cannot accept your own job" }, { status: 400 })
     }
 
     // Assign job to user
     const updatedJob = await updateJob(jobId, {
-      assignedTo: userId,
+      assignedTo: session.userId,
       status: "assigned",
       assignedAt: new Date().toISOString(),
     })

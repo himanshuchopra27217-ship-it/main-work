@@ -47,12 +47,12 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { userId, category, age, mobile, profilePhoto } = body
+    const { userId, categories, role, age, mobile, profilePhoto, bio, skills, experience } = body
 
     // Validate required fields
-    if (!category || !age || !mobile) {
+    if (!categories || categories.length === 0 || !age || !mobile || !role) {
       return NextResponse.json(
-        { error: "Category, age, and mobile are required" },
+        { error: "Categories, role, age, and mobile are required" },
         { status: 400 }
       )
     }
@@ -65,10 +65,14 @@ export async function POST(request: NextRequest) {
     // Create profile
     const profile = await createProfile({
       userId,
-      category,
+      categories,
+      role,
       age: parseInt(age),
       mobile,
       profilePhoto: profilePhoto || null,
+      bio: bio || null,
+      skills: skills || [],
+      experience: experience ? parseInt(experience) : null,
     })
 
     return NextResponse.json({ success: true, profile })
@@ -90,12 +94,12 @@ export async function PUT(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { userId, category, age, mobile, profilePhoto } = body
+    const { userId, categories, role, age, mobile, profilePhoto, bio, skills, experience } = body
 
     // Validate required fields
-    if (!category || !age || !mobile) {
+    if (!categories || categories.length === 0 || !age || !mobile || !role) {
       return NextResponse.json(
-        { error: "Category, age, and mobile are required" },
+        { error: "Categories, role, age, and mobile are required" },
         { status: 400 }
       )
     }
@@ -107,10 +111,14 @@ export async function PUT(request: NextRequest) {
 
     // Update profile
     const profile = await updateProfile(userId, {
-      category,
+      categories,
+      role,
       age: parseInt(age),
       mobile,
       profilePhoto: profilePhoto || null,
+      bio: bio || null,
+      skills: skills || [],
+      experience: experience ? parseInt(experience) : null,
     })
 
     if (!profile) {

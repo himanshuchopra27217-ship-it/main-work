@@ -34,7 +34,7 @@ export default async function CreateJobPage() {
           <CardDescription>Fill in the information about the job you want to post</CardDescription>
         </CardHeader>
         <CardContent>
-          <JobCreateForm userId={session.userId} userCategory={profile.category} />
+          <JobCreateForm userId={session.userId} userCategories={profile.categories || (profile.category ? [profile.category] : [])} />
         </CardContent>
       </Card>
     </div>

@@ -32,7 +32,7 @@ export default function ForgotPasswordPage() {
         <CardHeader className="space-y-1">
           <div className="flex items-center gap-2 mb-2">
             <Briefcase className="h-6 w-6 text-primary" />
-            <span className="font-semibold text-xl">Kaamwork</span>
+            <span className="font-semibold text-xl">KaamGuru</span>
           </div>
           <CardTitle className="text-2xl">Reset your password</CardTitle>
           <CardDescription>

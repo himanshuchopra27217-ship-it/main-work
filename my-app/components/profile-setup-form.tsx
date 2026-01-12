@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Calendar } from "@/components/ui/calendar"
 
 const categories = [
   "Plumber",
@@ -37,10 +38,21 @@ export function ProfileSetupForm({ userId }: ProfileSetupFormProps) {
     mobile: "",
     profilePhoto: "",
   })
+  const [birthDate, setBirthDate] = useState<Date | undefined>(undefined)
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [previewUrl, setPreviewUrl] = useState<string>("")
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
+
+  const calculateAge = (birthDate: Date) => {
+    const today = new Date()
+    let age = today.getFullYear() - birthDate.getFullYear()
+    const monthDiff = today.getMonth() - birthDate.getMonth()
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+      age--
+    }
+    return age
+  }
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -82,11 +94,24 @@ export function ProfileSetupForm({ userId }: ProfileSetupFormProps) {
       return
     }
 
+    if (!birthDate || !formData.mobile) {
+      setError("Please fill in all required fields (birth date and mobile)")
+      setLoading(false)
+      return
+    }
+
+    const age = calculateAge(birthDate)
+
     try {
       const response = await fetch("/api/profile", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...formData, userId }),
+        credentials: "include",
+        body: JSON.stringify({
+          ...formData,
+          age,
+          userId,
+        }),
       })
 
       const data = await response.json()
@@ -196,19 +221,23 @@ export function ProfileSetupForm({ userId }: ProfileSetupFormProps) {
       
 
           <div className="space-y-2">
-            <Label htmlFor="age">
-              Age <span className="text-destructive">*</span>
+            <Label>
+              Date of Birth <span className="text-destructive">*</span>
             </Label>
-            <Input
-              id="age"
-              type="number"
-              placeholder="25"
-              min="18"
-              max="100"
-              value={formData.age}
-              onChange={(e) => setFormData({ ...formData, age: e.target.value })}
-              required
+            <Calendar
+              mode="single"
+              selected={birthDate}
+              onSelect={setBirthDate}
+              disabled={(date) =>
+                date > new Date() || date < new Date("1900-01-01")
+              }
+              className="rounded-md border"
             />
+            {birthDate && (
+              <p className="text-sm text-muted-foreground">
+                Age: {calculateAge(birthDate)} years old
+              </p>
+            )}
           </div>
 
           <div className="space-y-2">
@@ -228,7 +257,7 @@ export function ProfileSetupForm({ userId }: ProfileSetupFormProps) {
           {error && <div className="text-sm text-destructive bg-destructive/10 p-3 rounded-md">{error}</div>}
 
           <div className="flex gap-3">
-            <Button type="submit" disabled={loading || !formData.category} className="flex-1">
+            <Button type="submit" disabled={loading || formData.categories.length === 0 || !birthDate || !formData.mobile} className="flex-1">
               {loading ? "Saving..." : "Complete Profile"}
             </Button>
           </div>

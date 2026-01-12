@@ -3,7 +3,7 @@
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
-import { CheckCircle2 } from "lucide-react"
+import { CheckCircle2, Phone } from "lucide-react"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -18,9 +18,10 @@ import {
 
 interface AcceptJobButtonProps {
   jobId: string
+  mobile?: string
 }
 
-export function AcceptJobButton({ jobId }: AcceptJobButtonProps) {
+export function AcceptJobButton({ jobId, mobile }: AcceptJobButtonProps) {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
 
@@ -31,6 +32,7 @@ export function AcceptJobButton({ jobId }: AcceptJobButtonProps) {
       const response = await fetch("/api/jobs/accept", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({ jobId }),
       })
 
@@ -55,12 +57,22 @@ export function AcceptJobButton({ jobId }: AcceptJobButtonProps) {
           Accept Job
         </Button>
       </AlertDialogTrigger>
-      <AlertDialogContent>
+        <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>Accept Job</AlertDialogTitle>
           <AlertDialogDescription>
-            Are you sure you want to accept this job? Once accepted, it will be assigned to you and hidden from other
-            workers.
+            <div className="space-y-2">
+              <p>Are you sure you want to accept this job? Once accepted, it will be assigned to you and hidden from other workers.</p>
+              {mobile && (
+                <div className="bg-muted p-3 rounded-md">
+                  <p className="text-sm font-medium">Contact Information:</p>
+                  <p className="text-sm flex items-center gap-2">
+                    <Phone className="h-4 w-4" />
+                    {mobile}
+                  </p>
+                </div>
+              )}
+            </div>
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>

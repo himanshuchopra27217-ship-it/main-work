@@ -4,7 +4,7 @@ import { getJobsByUser, getAssignedJobsByUser } from "@/lib/db"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Briefcase, Calendar } from "lucide-react"
+import { Briefcase, Calendar, Phone } from "lucide-react"
 import Link from "next/link"
 import { DeleteJobButton } from "@/components/delete-job-button"
 
@@ -125,6 +125,10 @@ export default async function MyJobsPage() {
                     <div className="flex items-center gap-1">
                       <Calendar className="h-4 w-4" />
                       <span>{new Date(job.createdAt).toLocaleDateString()}</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <Phone className="h-4 w-4" />
+                      <span>{job.mobile}</span>
                     </div>
                   </div>
                 </CardContent>
