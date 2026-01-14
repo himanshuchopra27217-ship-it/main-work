@@ -4,6 +4,8 @@ import { ChevronLeft } from "lucide-react"
 import { getSession, getUserProfile } from "@/lib/auth"
 import { Button } from "@/components/ui/button"
 import { ProfileEditForm } from "@/components/profile-edit-form"
+import { UpdateEmailForm } from "@/components/update-email-form"
+import { UpdateMobileForm } from "@/components/update-mobile-form"
 
 export default async function ProfileEditPage() {
   const session = await getSession()
@@ -34,8 +36,17 @@ export default async function ProfileEditPage() {
         <p className="text-muted-foreground mt-2">Update your professional information</p>
       </div>
 
-      <div className="max-w-2xl">
+      <div className="max-w-2xl space-y-8">
         <ProfileEditForm profile={profile} />
+
+        <div>
+          <h2 className="text-xl font-semibold mb-2">Account</h2>
+          <p className="text-muted-foreground mb-4">Update your login email and phone number</p>
+          <div className="grid gap-6">
+            <UpdateEmailForm />
+            <UpdateMobileForm />
+          </div>
+        </div>
       </div>
     </div>
   )

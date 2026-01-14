@@ -41,29 +41,42 @@ export default async function DashboardPage() {
 
   return (
     <div>
+
+
       <div className="space-y-8 max-w-6xl">
           {/* Welcome Section */}
           <div>
             <h1 className="text-3xl font-bold tracking-tight">
               Welcome back, {user.name}!
             </h1>
-            <p className="text-muted-foreground mt-2">
-              {profile.role === 'worker' 
-                ? `Find work opportunities in your selected categories.`
-                : `Here's an overview of your job activity.`
-              }
-            </p>
+          
+
+ {/* Quick Actions - fixed 2 columns per row */}
+          <div className="grid gap-12 grid-cols-1 mt-5">
+            {profile.role !== 'worker' && (
+              <Card className="col-span-1">
+                
+                <CardContent className="space-y-4">
+                  <Button asChild className="w-full">
+                    <Link href="/dashboard/jobs/create">
+                      <Plus className="h-4 w-4 mr-2" />
+                      Post Your Work
+                    </Link>
+                  </Button>
+               
+                  <Button asChild variant="ghost" size="sm" className="w-full">
+                    <Link href="/dashboard/switch-role?to=worker">
+                      Switch to Worker Mode
+                    </Link>
+                  </Button>
+                </CardContent>
+              </Card>
+            )}
+            {/* Worker quick action moved to top grid */}
+          </div>
+
           {profile.role === 'worker' && (
             <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Briefcase className="h-5 w-5" />
-                  Find Work
-                </CardTitle>
-                <CardDescription>
-                  Browse and accept available jobs
-                </CardDescription>
-              </CardHeader>
               <CardContent className="space-y-4">
                 <Button asChild className="w-full">
                   <Link href="/dashboard/jobs">
@@ -82,11 +95,11 @@ export default async function DashboardPage() {
           </div>
 
           {/* Stats */}
-          <div className="grid gap-6 grid-cols-2">
+          <div className="grid gap-4 grid-cols-2">
             {profile.role !== 'worker' && (
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Jobs Posted</CardTitle>
+                  <CardTitle className="text-sm font-medium">Your Recent Posted Works</CardTitle>
                   <Briefcase className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
@@ -101,7 +114,7 @@ export default async function DashboardPage() {
             <Link href="/dashboard/my-jobs?view=accepted">
             <Card className="hover:shadow-md transition">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Jobs Accepted</CardTitle>
+                <CardTitle className="text-sm font-medium">Work Under Progress</CardTitle>
                 <Users className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
@@ -117,41 +130,7 @@ export default async function DashboardPage() {
           {/* Recent Jobs - full width column */}
           <RecentJobs categories={userCategories} />
 
-          {/* Quick Actions - fixed 2 columns per row */}
-          <div className="grid gap-6 grid-cols-2">
-            {profile.role !== 'worker' && (
-              <Card className="col-span-2">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Briefcase className="h-5 w-5" />
-                    Job Management
-                  </CardTitle>
-                  <CardDescription>
-                    Create and manage your job postings
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <Button asChild className="w-full">
-                    <Link href="/dashboard/jobs/create">
-                      <Plus className="h-4 w-4 mr-2" />
-                      Post Your Work
-                    </Link>
-                  </Button>
-                  <Button asChild variant="outline" className="w-full">
-                    <Link href="/dashboard/my-jobs">
-                      View My Jobs
-                    </Link>
-                  </Button>
-                  <Button asChild variant="ghost" size="sm" className="w-full">
-                    <Link href="/dashboard/switch-role?to=worker">
-                      Switch to Worker Mode
-                    </Link>
-                  </Button>
-                </CardContent>
-              </Card>
-            )}
-            {/* Worker quick action moved to top grid */}
-          </div>
+         
 
           {/* Profile Status */}
           <Card className="col-span-2">
