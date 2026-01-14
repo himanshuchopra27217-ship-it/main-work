@@ -20,6 +20,26 @@ You can start editing the page by modifying `app/page.tsx`. The page auto-update
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
+## AI Configuration
+
+This app supports a global AI configuration exposed to clients.
+
+- Enable and select model via environment: see [my-app/.env.local](my-app/.env.local)
+- The API endpoint exposes the current config: [my-app/app/api/ai/config/route.ts](my-app/app/api/ai/config/route.ts)
+
+Environment variables:
+- AI_ENABLED: set to true to enable for all clients
+- AI_PROVIDER: e.g. anthropic
+- AI_MODEL: server-side default (e.g. claude-sonnet-4.5)
+- NEXT_PUBLIC_AI_MODEL: client-visible model name
+- ANTHROPIC_API_KEY: required if you later call Anthropic APIs
+
+Quick test:
+
+```bash
+curl http://localhost:3000/api/ai/config
+```
+
 ## Learn More
 
 To learn more about Next.js, take a look at the following resources:

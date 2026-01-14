@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { Briefcase, Users, Plus, Search, User } from "lucide-react"
 import Link from "next/link"
-import { DashboardNav } from "@/components/dashboard-nav"
+import RecentJobs from "@/components/recent-jobs"
 
 export default async function DashboardPage() {
   const session = await getSession()
@@ -40,24 +40,8 @@ export default async function DashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-muted/30">
-      <header className="border-b bg-card">
-        <div className="flex h-16 items-center px-6 gap-4">
-          <div className="flex items-center gap-2">
-            <Briefcase className="h-6 w-6 text-primary" />
-            <span className="font-semibold text-xl">KaamGuru</span>
-          </div>
-          <div className="ml-auto">
-            <Button variant="outline" asChild>
-              <Link href="/login">Logout</Link>
-            </Button>
-          </div>
-        </div>
-      </header>
-      <DashboardNav userRole={profile.role} />
-
-      <main className="container mx-auto px-4 py-8">
-        <div className="space-y-8 max-w-6xl">
+    <div>
+      <div className="space-y-8 max-w-6xl">
           {/* Welcome Section */}
           <div>
             <h1 className="text-3xl font-bold tracking-tight">
@@ -69,10 +53,36 @@ export default async function DashboardPage() {
                 : `Here's an overview of your job activity.`
               }
             </p>
+          {profile.role === 'worker' && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Briefcase className="h-5 w-5" />
+                  Find Work
+                </CardTitle>
+                <CardDescription>
+                  Browse and accept available jobs
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <Button asChild className="w-full">
+                  <Link href="/dashboard/jobs">
+                    Browse Jobs
+                  </Link>
+                </Button>
+                <Button asChild variant="outline" className="w-full">
+                  <Link href="/dashboard/switch-role?to=hiring">
+                    Publish Your Work
+                  </Link>
+                </Button>
+              </CardContent>
+            </Card>
+          )}
+
           </div>
 
-          {/* Stats Cards */}
-          <div className={`grid gap-6 ${profile.role === 'worker' ? 'md:grid-cols-2' : 'md:grid-cols-3'}`}>
+          {/* Stats */}
+          <div className="grid gap-6 grid-cols-2">
             {profile.role !== 'worker' && (
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -88,7 +98,8 @@ export default async function DashboardPage() {
               </Card>
             )}
 
-            <Card>
+            <Link href="/dashboard/my-jobs?view=accepted">
+            <Card className="hover:shadow-md transition">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">Jobs Accepted</CardTitle>
                 <Users className="h-4 w-4 text-muted-foreground" />
@@ -100,25 +111,16 @@ export default async function DashboardPage() {
                 </p>
               </CardContent>
             </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Available Jobs</CardTitle>
-                <Search className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{stats.availableJobs}</div>
-                <p className="text-xs text-muted-foreground">
-                  Jobs you can apply for
-                </p>
-              </CardContent>
-            </Card>
+            </Link>
           </div>
 
-          {/* Quick Actions */}
-          <div className={`grid gap-6 ${profile.role === 'worker' ? 'md:grid-cols-1 max-w-md' : 'md:grid-cols-1'}`}>
+          {/* Recent Jobs - full width column */}
+          <RecentJobs categories={userCategories} />
+
+          {/* Quick Actions - fixed 2 columns per row */}
+          <div className="grid gap-6 grid-cols-2">
             {profile.role !== 'worker' && (
-              <Card>
+              <Card className="col-span-2">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Briefcase className="h-5 w-5" />
@@ -148,44 +150,11 @@ export default async function DashboardPage() {
                 </CardContent>
               </Card>
             )}
-            {profile.role === 'worker' && (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Briefcase className="h-5 w-5" />
-                    Find Work
-                  </CardTitle>
-                  <CardDescription>
-                    Browse and accept available jobs
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <Button asChild className="w-full">
-                    <Link href="/dashboard/jobs">
-                      Browse Jobs
-                    </Link>
-                  </Button>
-                  <Button asChild variant="outline" className="w-full">
-                    <Link href="/dashboard/switch-role?to=hiring">
-                      Publish Your Work
-                    </Link>
-                  </Button>
-                  <div className="text-sm text-muted-foreground">
-                    {stats.availableJobs > 0 ? (
-                      <span className="text-primary font-medium">
-                        {stats.availableJobs} jobs available in your category
-                      </span>
-                    ) : (
-                      "No jobs currently available in your category"
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            )}
+            {/* Worker quick action moved to top grid */}
           </div>
 
           {/* Profile Status */}
-          <Card>
+          <Card className="col-span-2">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <User className="h-5 w-5" />
@@ -215,8 +184,7 @@ export default async function DashboardPage() {
               </div>
             </CardContent>
           </Card>
-        </div>
-      </main>
+      </div>
     </div>
   )
 }

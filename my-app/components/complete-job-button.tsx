@@ -3,7 +3,6 @@
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
-import { CheckCircle2, Phone } from "lucide-react"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -16,33 +15,31 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 
-interface AcceptJobButtonProps {
+interface CompleteJobButtonProps {
   jobId: string
 }
 
-export function AcceptJobButton({ jobId }: AcceptJobButtonProps) {
+export function CompleteJobButton({ jobId }: CompleteJobButtonProps) {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
 
-  const handleAccept = async () => {
+  const handleComplete = async () => {
     setLoading(true)
-
     try {
-      const response = await fetch("/api/jobs/accept", {
+      const res = await fetch("/api/jobs/complete", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
         body: JSON.stringify({ jobId }),
       })
-
-      if (!response.ok) {
-        throw new Error("Failed to accept job")
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}))
+        throw new Error(data.error || "Failed to complete job")
       }
-
-      router.push("/dashboard/my-jobs")
       router.refresh()
-    } catch (error) {
-      console.error("Accept job error:", error)
+    } catch (e) {
+      // eslint-disable-next-line no-console
+      console.error(e)
     } finally {
       setLoading(false)
     }
@@ -51,22 +48,19 @@ export function AcceptJobButton({ jobId }: AcceptJobButtonProps) {
   return (
     <AlertDialog>
       <AlertDialogTrigger asChild>
-        <Button size="lg" className="gap-2">
-          <CheckCircle2 className="h-4 w-4" />
-          Accept Job
-        </Button>
+        <Button variant="default" size="sm">Mark Completed</Button>
       </AlertDialogTrigger>
-        <AlertDialogContent>
+      <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Accept Job</AlertDialogTitle>
+          <AlertDialogTitle>Mark job as completed?</AlertDialogTitle>
           <AlertDialogDescription>
-            Are you sure you want to accept this job? Once accepted, it will be assigned to you and hidden from other workers.
+            This will mark the job as completed. Workers will see it as completed and it will no longer be open.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel>Cancel</AlertDialogCancel>
-          <AlertDialogAction onClick={handleAccept} disabled={loading}>
-            {loading ? "Accepting..." : "Confirm"}
+          <AlertDialogAction onClick={handleComplete} disabled={loading}>
+            {loading ? "Updating..." : "Confirm"}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

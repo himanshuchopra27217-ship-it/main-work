@@ -35,11 +35,6 @@ export function DashboardNav({ userRole }: DashboardNavProps) {
             href: "/dashboard/jobs",
             icon: Briefcase,
           },
-          {
-            title: "Worker Profiles",
-            href: "/dashboard/profiles",
-            icon: Users,
-          },
         ]
       case "hiring":
         return [

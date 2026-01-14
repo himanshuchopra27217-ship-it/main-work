@@ -43,6 +43,7 @@ export interface JobPost {
   description: string;
   category: string; // Job category
   subCategory?: string; // Job sub-category
+  state?: string;
   createdBy: string; // Reference to User._id (Job creator)
   assignedTo?: string; // Reference to User._id (Assigned worker)
   status: 'open' | 'closed' | 'assigned' | 'completed' | 'cancelled';
@@ -50,6 +51,7 @@ export interface JobPost {
   mobile?: string;
   city?: string;
   workPhoto?: string; // URL or file path
+  workPhotos?: string[]; // Multiple photos
   workDate?: string; // Date string
   location?: string;
   priority?: 'low' | 'medium' | 'high';
@@ -58,6 +60,9 @@ export interface JobPost {
   createdAt: string;
   updatedAt?: string;
   completedAt?: string;
+  cancelledAt?: string;
+  cancelledBy?: string;
+  cancelledReason?: string;
 }
 
 // ============= JOB ACCEPTANCE SCHEMA =============

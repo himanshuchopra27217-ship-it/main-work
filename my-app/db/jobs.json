@@ -12,7 +12,26 @@
     "mobile": "9812727217",
     "city": "hansi",
     "workDate": "2026-01-12",
-    "createdAt": "2026-01-11T05:18:30.886Z"
+    "createdAt": "2026-01-11T05:18:30.886Z",
+    "assignedAt": null,
+    "updatedAt": "2026-01-14T07:15:56.780Z",
+    "declineHistory": [
+      {
+        "userId": "1768108787493",
+        "reason": "",
+        "at": "2026-01-14T06:31:28.989Z"
+      },
+      {
+        "userId": "1768108787493",
+        "reason": "",
+        "at": "2026-01-14T06:46:47.610Z"
+      },
+      {
+        "userId": "1768108787493",
+        "reason": "",
+        "at": "2026-01-14T07:15:56.779Z"
+      }
+    ]
   },
   {
     "_id": "1768108715578",
@@ -21,13 +40,15 @@
     "category": "Web Developer",
     "subCategory": "website",
     "createdBy": "1",
-    "assignedTo": null,
-    "status": "open",
+    "assignedTo": "1768108787493",
+    "status": "assigned",
     "budget": 5000,
     "mobile": "9812727217",
     "city": "hansi",
     "workDate": "2026-01-12",
-    "createdAt": "2026-01-11T05:18:35.578Z"
+    "createdAt": "2026-01-11T05:18:35.578Z",
+    "assignedAt": "2026-01-14T06:31:49.603Z",
+    "updatedAt": "2026-01-14T06:31:49.604Z"
   },
   {
     "_id": "1768138370302",

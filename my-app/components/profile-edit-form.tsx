@@ -140,7 +140,7 @@ export function ProfileEditForm({ profile }: ProfileEditFormProps) {
                 id="profilePhoto"
                 type="file"
                 accept="image/*"
-                required
+                required={!profile.profilePhoto}
                 onChange={handleFileChange}
                 className="file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-primary-foreground hover:file:bg-primary/90"
               />
@@ -209,7 +209,7 @@ export function ProfileEditForm({ profile }: ProfileEditFormProps) {
             label="Date of Birth"
             value={birthDate}
             onChange={setBirthDate}
-            required
+            required={!profile.age}
           />
 
           {/* Mobile Number */}
@@ -223,7 +223,7 @@ export function ProfileEditForm({ profile }: ProfileEditFormProps) {
               placeholder="+1 (555) 000-0000"
               value={formData.mobile}
               onChange={(e) => setFormData({ ...formData, mobile: e.target.value })}
-              required
+              required={!profile.mobile}
             />
           </div>
 

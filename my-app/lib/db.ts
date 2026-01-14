@@ -1,16 +1,18 @@
-// Database integration - uses file-based DB in development, MongoDB in production
-import clientPromise from './mongodb';
+// Database integration - supports file-based DB and MongoDB
 import { fileDb } from './file-db';
 import type { User, UserProfile, JobPost } from './schemas';
 
-// Use file-based DB in development, MongoDB in production
-const isDevelopment = process.env.NODE_ENV === 'development';
+// Select provider: force Mongo when USE_MONGO=true, otherwise file DB in development
+const useMongo = process.env.USE_MONGO === 'true' || process.env.NODE_ENV !== 'development';
 
-export const db = isDevelopment ? fileDb : {
+// Lazy loader for Mongo client to avoid requiring env when not used
+const getMongoClient = async () => (await import('./mongodb')).default;
+
+export const db = !useMongo ? fileDb : {
   // MongoDB implementations for production
   findUserByEmailOrMobile: async (identifier: string): Promise<User | null> => {
     try {
-      const client = await clientPromise;
+      const client = await getMongoClient();
       const dbConnection = client.db('jobapp');
       const user = await dbConnection.collection('users').findOne({
         $or: [{ email: identifier }, { mobile: identifier }]
@@ -24,9 +26,10 @@ export const db = isDevelopment ? fileDb : {
 
   findUserById: async (id: string): Promise<User | null> => {
     try {
-      const client = await clientPromise;
+      const client = await getMongoClient();
       const dbConnection = client.db('jobapp');
-      const user = await dbConnection.collection('users').findOne({ _id: id });
+      const { ObjectId } = await import('mongodb');
+      const user = await dbConnection.collection('users').findOne({ _id: new ObjectId(id) });
       return user as User | null;
     } catch (error) {
       console.error('Error finding user by ID:', error);
@@ -36,7 +39,7 @@ export const db = isDevelopment ? fileDb : {
 
   findUserByEmail: async (email: string): Promise<User | null> => {
     try {
-      const client = await clientPromise;
+      const client = await getMongoClient();
       const dbConnection = client.db('jobapp');
       const user = await dbConnection.collection('users').findOne({ email });
       return user as User | null;
@@ -48,7 +51,7 @@ export const db = isDevelopment ? fileDb : {
 
   findUserByMobile: async (mobile: string): Promise<User | null> => {
     try {
-      const client = await clientPromise;
+      const client = await getMongoClient();
       const dbConnection = client.db('jobapp');
       const user = await dbConnection.collection('users').findOne({ mobile });
       return user as User | null;
@@ -60,7 +63,7 @@ export const db = isDevelopment ? fileDb : {
 
   findUserByResetToken: async (token: string): Promise<User | null> => {
     try {
-      const client = await clientPromise;
+      const client = await getMongoClient();
       const dbConnection = client.db('jobapp');
       const user = await dbConnection.collection('users').findOne({
         resetToken: token,
@@ -75,10 +78,11 @@ export const db = isDevelopment ? fileDb : {
 
   updateUser: async (id: string, updates: Partial<User>): Promise<User | null> => {
     try {
-      const client = await clientPromise;
+      const client = await getMongoClient();
       const dbConnection = client.db('jobapp');
+      const { ObjectId } = await import('mongodb');
       const result = await dbConnection.collection('users').findOneAndUpdate(
-        { _id: id },
+        { _id: new ObjectId(id) },
         { $set: updates },
         { returnDocument: 'after' }
       );
@@ -91,7 +95,7 @@ export const db = isDevelopment ? fileDb : {
 
   createUser: async (userData: any): Promise<User> => {
     try {
-      const client = await clientPromise;
+      const client = await getMongoClient();
       const dbConnection = client.db('jobapp');
       const result = await dbConnection.collection('users').insertOne({
         ...userData,
@@ -106,7 +110,7 @@ export const db = isDevelopment ? fileDb : {
 
   getUserProfile: async (userId: string): Promise<UserProfile | null> => {
     try {
-      const client = await clientPromise;
+      const client = await getMongoClient();
       const db = client.db('jobapp');
       const profile = await db.collection('profiles').findOne({ userId });
       return profile as UserProfile | null;
@@ -118,7 +122,7 @@ export const db = isDevelopment ? fileDb : {
 
   createProfile: async (data: any): Promise<UserProfile> => {
     try {
-      const client = await clientPromise;
+      const client = await getMongoClient();
       const db = client.db('jobapp');
       const newProfile = {
         ...data,
@@ -135,7 +139,7 @@ export const db = isDevelopment ? fileDb : {
 
   updateProfile: async (userId: string, data: any): Promise<UserProfile | null> => {
     try {
-      const client = await clientPromise;
+      const client = await getMongoClient();
       const db = client.db('jobapp');
       const result = await db.collection('profiles').findOneAndUpdate(
         { userId },
@@ -151,7 +155,7 @@ export const db = isDevelopment ? fileDb : {
 
   getAllProfiles: async (): Promise<UserProfile[]> => {
     try {
-      const client = await clientPromise;
+      const client = await getMongoClient();
       const db = client.db('jobapp');
       const profiles = await db.collection('profiles').find({}).toArray();
       return profiles as UserProfile[];
@@ -163,9 +167,9 @@ export const db = isDevelopment ? fileDb : {
 
   getAllAvailableJobs: async (excludeUserId?: string): Promise<JobPost[]> => {
     try {
-      const client = await clientPromise;
+      const client = await getMongoClient();
       const db = client.db('jobapp');
-      const query = excludeUserId ? { status: 'open', userId: { $ne: excludeUserId } } : { status: 'open' };
+      const query = excludeUserId ? { status: 'open', createdBy: { $ne: excludeUserId } } : { status: 'open' };
       const jobs = await db.collection('jobs').find(query).toArray();
       return jobs as JobPost[];
     } catch (error) {
@@ -176,7 +180,7 @@ export const db = isDevelopment ? fileDb : {
 
   createJob: async (jobData: any): Promise<JobPost> => {
     try {
-      const client = await clientPromise;
+      const client = await getMongoClient();
       const db = client.db('jobapp');
       const newJob = {
         ...jobData,
@@ -193,9 +197,10 @@ export const db = isDevelopment ? fileDb : {
 
   getJobById: async (id: string): Promise<JobPost | null> => {
     try {
-      const client = await clientPromise;
+      const client = await getMongoClient();
       const db = client.db('jobapp');
-      const job = await db.collection('jobs').findOne({ _id: id });
+      const { ObjectId } = await import('mongodb');
+      const job = await db.collection('jobs').findOne({ _id: new ObjectId(id) });
       return job as JobPost | null;
     } catch (error) {
       console.error('Error fetching job:', error);
@@ -205,10 +210,11 @@ export const db = isDevelopment ? fileDb : {
 
   updateJob: async (id: string, data: any): Promise<JobPost | null> => {
     try {
-      const client = await clientPromise;
+      const client = await getMongoClient();
       const db = client.db('jobapp');
+      const { ObjectId } = await import('mongodb');
       const result = await db.collection('jobs').findOneAndUpdate(
-        { _id: id },
+        { _id: new ObjectId(id) },
         { $set: { ...data, updatedAt: new Date().toISOString() } },
         { returnDocument: 'after' }
       );
@@ -220,9 +226,10 @@ export const db = isDevelopment ? fileDb : {
   },
   deleteJob: async (id: string): Promise<boolean> => {
     try {
-      const client = await clientPromise;
+      const client = await getMongoClient();
       const db = client.db('jobapp');
-      const result = await db.collection('jobs').deleteOne({ _id: id });
+      const { ObjectId } = await import('mongodb');
+      const result = await db.collection('jobs').deleteOne({ _id: new ObjectId(id) });
       return result.deletedCount > 0;
     } catch (error) {
       console.error('Error deleting job:', error);
@@ -231,9 +238,9 @@ export const db = isDevelopment ? fileDb : {
   },
   getJobsByUser: async (userId: string): Promise<JobPost[]> => {
     try {
-      const client = await clientPromise;
+      const client = await getMongoClient();
       const db = client.db('jobapp');
-      const jobs = await db.collection('jobs').find({ userId }).toArray();
+      const jobs = await db.collection('jobs').find({ createdBy: userId }).toArray();
       return jobs as JobPost[];
     } catch (error) {
       console.error('Error fetching jobs by user:', error);
@@ -243,7 +250,7 @@ export const db = isDevelopment ? fileDb : {
 
   getAssignedJobsByUser: async (userId: string): Promise<JobPost[]> => {
     try {
-      const client = await clientPromise;
+      const client = await getMongoClient();
       const db = client.db('jobapp');
       const jobs = await db.collection('jobs').find({ assignedTo: userId }).toArray();
       return jobs as JobPost[];
@@ -255,10 +262,10 @@ export const db = isDevelopment ? fileDb : {
 
   getAvailableJobsByCategory: async (category: string, excludeUserId?: string): Promise<JobPost[]> => {
     try {
-      const client = await clientPromise;
+      const client = await getMongoClient();
       const db = client.db('jobapp');
       const query = excludeUserId 
-        ? { category, status: 'open', userId: { $ne: excludeUserId } } 
+        ? { category, status: 'open', createdBy: { $ne: excludeUserId } } 
         : { category, status: 'open' };
       const jobs = await db.collection('jobs').find(query).toArray();
       return jobs as JobPost[];

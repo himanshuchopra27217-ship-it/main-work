@@ -24,43 +24,39 @@ export function JobCreateForm({ userId, userCategories }: JobCreateFormProps) {
     subCategory: "",
     budget: "",
     mobile: "",
+    state: "",
     city: "",
-    status: "open" as "open" | "closed",
     workDate: "",
     location: "",
     workPhoto: "",
+    workPhotos: [] as string[],
   })
-  const [selectedFile, setSelectedFile] = useState<File | null>(null)
-  const [previewUrl, setPreviewUrl] = useState<string>("")
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([])
+  const [previewUrls, setPreviewUrls] = useState<string[]>([])
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (file) {
-      // Validate file type
-      if (!file.type.startsWith('image/')) {
-        setError("Please select a valid image file")
-        return
+    const files = Array.from(e.target.files || [])
+    if (files.length) {
+      const validImages = files.filter((file) => file.type.startsWith("image/") && file.size <= 5 * 1024 * 1024)
+      if (validImages.length !== files.length) {
+        setError("Only image files up to 5MB are allowed")
+      } else {
+        setError("")
       }
-
-      // Validate file size (5MB limit)
-      if (file.size > 5 * 1024 * 1024) {
-        setError("File size must be less than 5MB")
-        return
-      }
-
-      setSelectedFile(file)
-      setError("")
-
-      // Create preview URL
-      const reader = new FileReader()
-      reader.onload = (e) => {
-        const result = e.target?.result as string
-        setPreviewUrl(result)
-        setFormData({ ...formData, workPhoto: result })
-      }
-      reader.readAsDataURL(file)
+      setSelectedFiles(validImages)
+      const readers = validImages.map((file) => {
+        return new Promise<string>((resolve) => {
+          const reader = new FileReader()
+          reader.onload = (ev) => resolve(ev.target?.result as string)
+          reader.readAsDataURL(file)
+        })
+      })
+      Promise.all(readers).then((urls) => {
+        setPreviewUrls(urls)
+        setFormData({ ...formData, workPhoto: urls[0] || "", workPhotos: urls })
+      })
     }
   }
 
@@ -194,6 +190,57 @@ export function JobCreateForm({ userId, userCategories }: JobCreateFormProps) {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-2">
+          <Label htmlFor="state">
+            State <span className="text-destructive">*</span>
+          </Label>
+          <Input
+            id="state"
+            list="state-list"
+            placeholder="Select or type state"
+            value={formData.state}
+            onChange={(e) => setFormData({ ...formData, state: e.target.value })}
+            required
+          />
+          <datalist id="state-list">
+            <option value="Andhra Pradesh" />
+            <option value="Arunachal Pradesh" />
+            <option value="Assam" />
+            <option value="Bihar" />
+            <option value="Chhattisgarh" />
+            <option value="Goa" />
+            <option value="Gujarat" />
+            <option value="Haryana" />
+            <option value="Himachal Pradesh" />
+            <option value="Jharkhand" />
+            <option value="Karnataka" />
+            <option value="Kerala" />
+            <option value="Madhya Pradesh" />
+            <option value="Maharashtra" />
+            <option value="Manipur" />
+            <option value="Meghalaya" />
+            <option value="Mizoram" />
+            <option value="Nagaland" />
+            <option value="Odisha" />
+            <option value="Punjab" />
+            <option value="Rajasthan" />
+            <option value="Sikkim" />
+            <option value="Tamil Nadu" />
+            <option value="Telangana" />
+            <option value="Tripura" />
+            <option value="Uttar Pradesh" />
+            <option value="Uttarakhand" />
+            <option value="West Bengal" />
+            <option value="Delhi" />
+            <option value="Jammu and Kashmir" />
+            <option value="Ladakh" />
+            <option value="Chandigarh" />
+            <option value="Puducherry" />
+            <option value="Andaman and Nicobar Islands" />
+            <option value="Dadra and Nagar Haveli and Daman and Diu" />
+            <option value="Lakshadweep" />
+          </datalist>
+        </div>
+        <div className="space-y-2">
           <Label htmlFor="city">
             City <span className="text-destructive">*</span>
           </Label>
@@ -206,56 +253,42 @@ export function JobCreateForm({ userId, userCategories }: JobCreateFormProps) {
             required
           />
         </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="status">Job Status</Label>
-          <Select value={formData.status} onValueChange={(value: "open" | "closed") => setFormData({ ...formData, status: value })}>
-            <SelectTrigger>
-              <SelectValue placeholder="Select status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="open">Open</SelectItem>
-              <SelectItem value="closed">Closed</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="workPhoto">Upload Work Photo</Label>
+        <Label htmlFor="workPhoto">Upload Work Photos</Label>
         <div className="space-y-4">
           <Input
             id="workPhoto"
             type="file"
             accept="image/*"
+            multiple
             onChange={handleFileChange}
             className="file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-primary-foreground hover:file:bg-primary/90"
           />
-          {previewUrl && (
-            <div className="flex items-center space-x-4">
-              <img
-                src={previewUrl}
-                alt="Work preview"
-                className="w-16 h-16 rounded-full object-cover border"
-              />
-              <div className="text-sm text-muted-foreground">
-                <p>Preview of work photo</p>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setSelectedFile(null)
-                    setPreviewUrl("")
-                    setFormData({ ...formData, workPhoto: "" })
-                  }}
-                  className="text-destructive hover:underline"
-                >
-                  Remove photo
-                </button>
+          {previewUrls.length > 0 && (
+            <div className="space-y-2">
+              <p className="text-sm text-muted-foreground">Preview of selected photos</p>
+              <div className="flex flex-wrap gap-2">
+                {previewUrls.map((url, idx) => (
+                  <img key={idx} src={url} alt={`Work preview ${idx + 1}`} className="w-20 h-20 rounded-md object-cover border" />
+                ))}
               </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setSelectedFiles([])
+                  setPreviewUrls([])
+                  setFormData({ ...formData, workPhoto: "", workPhotos: [] })
+                }}
+                className="text-destructive hover:underline text-sm"
+              >
+                Remove all photos
+              </button>
             </div>
           )}
         </div>
-        <p className="text-xs text-muted-foreground">Upload a work photo (max 5MB, JPG/PNG)</p>
+        <p className="text-xs text-muted-foreground">Upload up to several photos (each max 5MB, JPG/PNG)</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -274,13 +307,14 @@ export function JobCreateForm({ userId, userCategories }: JobCreateFormProps) {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="location">Location (Optional)</Label>
+          <Label htmlFor="location">Location</Label>
           <Input
             id="location"
             type="text"
             placeholder="Specific address or area"
             value={formData.location}
             onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+            required
           />
         </div>
       </div>

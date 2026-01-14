@@ -43,14 +43,14 @@ export default async function BrowseJobsPage() {
   return (
     <div className="space-y-6 max-w-5xl">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Hiring Dashboard</h1>
+        <h1 className="text-3xl font-bold tracking-tight">Job Opportunities</h1>
         <p className="text-muted-foreground mt-2">
           Browse all available job opportunities
         </p>
       </div>
 
       {availableJobs.length === 0 ? (
-        <Card>
+        <Card >
           <CardContent className="flex flex-col items-center justify-center py-16">
             <Briefcase className="h-16 w-16 text-muted-foreground mb-4" />
             <h3 className="text-xl font-semibold mb-2">No Jobs Available</h3>
@@ -62,8 +62,11 @@ export default async function BrowseJobsPage() {
         </Card>
       ) : (
         <div className="grid gap-6">
-          {availableJobs.map((job: any) => (
-            <Card key={job.id} className="hover:shadow-md transition-shadow">
+          {availableJobs.map((job: any) => {
+            const jobId = (job._id?.toString?.() ?? job._id ?? job.id) as string
+            const isCreator = job.createdBy === session.userId
+            return (
+            <Card key={jobId} className="hover:shadow-md transition-shadow">
               <CardHeader>
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex-1">
@@ -114,11 +117,11 @@ export default async function BrowseJobsPage() {
                 </div>
 
                 <div className="flex justify-end">
-                  <AcceptJobButton jobId={job.id} mobile={job.mobile} />
+                  {!isCreator && <AcceptJobButton jobId={jobId} />}
                 </div>
               </CardContent>
             </Card>
-          ))}
+          )})}
         </div>
       )}
     </div>
